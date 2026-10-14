@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Speedload",
+  "version": "0.1.0",
+  "description": "Übergibt Browser-Downloads an Speedload (mehrere Verbindungen, Fortsetzen nach Abbruch).",
+  "permissions": ["downloads"],
+  "host_permissions": ["http://127.0.0.1:7878/*"],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": { "id": "speedload@localhost", "strict_min_version": "121.0" }
+  }
+}

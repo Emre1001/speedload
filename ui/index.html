@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Speedload</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:14px/1.45 var(--font);color:var(--fg);background:var(--bg);transition:background .3s}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--btn);border:1px solid var(--border);border-radius:var(--r);padding:.45em .9em}
+button:hover{border-color:var(--acc)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input{background:var(--input);border:1px solid var(--border);border-radius:var(--r);padding:.55em .8em;min-width:0}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px 22px;position:sticky;top:0;z-index:2}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+.logo{font-weight:800;font-size:22px;letter-spacing:.02em}
+#total{color:var(--muted)}
+#banner{display:none;margin:0;font-size:11px;line-height:1.15;color:var(--acc)}
+#addf{display:flex;gap:8px;flex:1 1 380px;max-width:640px}
+#addf input{flex:1}
+main{padding:4px 22px 40px;display:grid;gap:14px;max-width:1100px;margin:0 auto}
+#empty{color:var(--muted);text-align:center;padding:60px 20px}
+.job{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--r) + 6px);padding:14px 16px;display:grid;gap:10px}
+.row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.name{font-weight:600;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.st{font-size:12px;padding:2px 10px;border-radius:99px;border:1px solid var(--border);color:var(--muted)}
+.st.run{color:var(--acc);border-color:var(--acc)}
+.st.done{color:var(--ok);border-color:var(--ok)}
+.st.error{color:var(--bad);border-color:var(--bad)}
+.meta{color:var(--muted);font-variant-numeric:tabular-nums}
+.acts{margin-left:auto;display:flex;gap:6px}
+.acts button{padding:.3em .7em}
+.err{color:var(--bad);font-size:12px}
+.err:empty{display:none}
+.bar{position:relative;height:12px;border-radius:99px;overflow:hidden;background:var(--fill)}
+.bar i{position:absolute;top:0;bottom:0;background:var(--hole);border-left:2px solid var(--head)}
+.bar.indet{background:repeating-linear-gradient(45deg,var(--hole) 0 10px,var(--fill) 10px 20px);background-size:28px 28px;animation:mv 1s linear infinite}
+@keyframes mv{to{background-position:28px 0}}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--bad);padding:10px 16px;border-radius:var(--r);opacity:0;transition:opacity .3s;pointer-events:none;backdrop-filter:blur(10px)}
+#toast.on{opacity:1}
+[hidden]{display:none!important}
+#off{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.7);color:#fff;z-index:9;text-align:center}
+dialog{color:var(--fg);background:var(--dlg);border:1px solid var(--border);border-radius:calc(var(--r) + 8px);padding:22px;width:min(560px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+dialog h2{margin:0 0 14px;font-size:18px}
+fieldset{border:0;padding:0;margin:0 0 18px}
+legend{color:var(--muted);margin-bottom:8px}
+.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.themes label{cursor:pointer;border:2px solid var(--border);border-radius:var(--r);padding:8px;display:grid;gap:6px;text-align:center}
+.themes input{position:absolute;opacity:0}
+.themes label:has(input:checked){border-color:var(--acc)}
+.pv{height:58px;border-radius:6px;display:grid;place-items:center;overflow:hidden;font-size:13px}
+.pv.p-glass{background:radial-gradient(circle at 20% 30%,#ff5fa2,transparent 60%),radial-gradient(circle at 80% 70%,#3ee0ff,transparent 60%),#2a1f6b}
+.pv.p-glass span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(6px);padding:6px 14px;border-radius:10px;color:#fff}
+.pv.p-ascii{background:#050a05;color:#39ff7a;font-family:ui-monospace,monospace;white-space:pre}
+.pv.p-flap{background:#0d0d0d;gap:2px;display:flex;justify-content:center;align-items:center}
+.pv.p-flap b{background:linear-gradient(#2b2b2b 50%,#1e1e1e 50%);color:#ffcc00;width:16px;height:24px;display:grid;place-items:center;border-radius:2px;font-family:Arial,sans-serif}
+.set-row{display:flex;gap:10px;align-items:center}
+.set-row input[type=range]{flex:1;padding:0;accent-color:var(--acc)}
+.set-row input[type=text]{flex:1}
+.dlg-acts{display:flex;justify-content:flex-end;gap:8px}
+.primary{background:var(--acc);color:var(--on-acc);border-color:var(--acc)}
+
+/* ---- Glas ---- */
+.t-glass{--font:system-ui,"Segoe UI",Ubuntu,sans-serif;--fg:#f4f4ff;--muted:rgba(240,240,255,.62);--bg:#120f2e;--card:rgba(255,255,255,.08);--dlg:rgba(40,34,90,.72);--border:rgba(255,255,255,.18);--btn:rgba(255,255,255,.1);--input:rgba(255,255,255,.08);--acc:#9d8cff;--on-acc:#120f2e;--ok:#5dffb0;--bad:#ff7a9a;--r:12px;--fill:linear-gradient(90deg,#7b6cff,#3ee0ff);--hole:rgba(255,255,255,.1);--head:#fff}
+.t-glass::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(circle at 15% 20%,#ff4f9a 0,transparent 32%),radial-gradient(circle at 85% 25%,#3ee0ff 0,transparent 30%),radial-gradient(circle at 50% 90%,#7b5cff 0,transparent 38%);filter:blur(30px);animation:drift 22s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(4%,-3%) rotate(8deg) scale(1.08)}}
+.t-glass .job,.t-glass header,.t-glass dialog{backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);box-shadow:0 8px 32px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+.t-glass header{background:rgba(255,255,255,.05);border-bottom:1px solid var(--border)}
+.t-glass .logo{background:linear-gradient(90deg,#fff,#b9a9ff,#7ff0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---- ASCII ---- */
+.t-ascii{--font:ui-monospace,"DejaVu Sans Mono","Cascadia Mono",Consolas,Menlo,monospace;--fg:#39ff7a;--muted:#1fa04c;--bg:#040904;--card:transparent;--dlg:#040904;--border:#1fa04c;--btn:transparent;--input:#071207;--acc:#7dffa8;--on-acc:#040904;--ok:#b6ff3a;--bad:#ff5050;--r:0px}
+.t-ascii body,.t-ascii{text-shadow:0 0 6px rgba(57,255,122,.45)}
+.t-ascii::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px)}
+.t-ascii #banner{display:block}
+.t-ascii .logo{display:none}
+.t-ascii .job{border-style:dashed;border-radius:0}
+.t-ascii .st{border-radius:0}
+.t-ascii .st::before{content:"<"}.t-ascii .st::after{content:">"}
+.t-ascii .bar{height:auto;background:none;border-radius:0;white-space:pre;overflow:hidden}
+.t-ascii header{border-bottom:1px dashed var(--border);background:var(--bg)}
+.t-ascii input::placeholder{color:var(--muted)}
+
+/* ---- Split-Flap ---- */
+.t-flap{--font:"Helvetica Neue",Arial,"Liberation Sans",sans-serif;--fg:#f2f2ea;--muted:#8c8c82;--bg:#0b0b0b;--card:#161616;--dlg:#161616;--border:#2b2b2b;--btn:#222;--input:#1d1d1d;--acc:#ffcc00;--on-acc:#111;--ok:#7dff7a;--bad:#ff5a4f;--r:4px}
+.t-flap{background:radial-gradient(#1a1a1a 1px,transparent 1px) 0 0/6px 6px,#0b0b0b}
+.t-flap header{background:#111;border-bottom:3px solid #000;box-shadow:0 2px 0 #222}
+.t-flap .job{box-shadow:inset 0 2px 0 #222,0 3px 0 #000}
+.t-flap .f{display:inline-flex;gap:2px;perspective:300px}
+.fl{display:inline-grid;place-items:center;width:1.15em;height:1.7em;background:linear-gradient(#2c2c2c 0 49%,#000 49% 51%,#222 51%);color:var(--acc);font-weight:700;border-radius:3px;text-transform:uppercase;box-shadow:0 2px 2px rgba(0,0,0,.6)}
+.fl.flip{animation:flip .28s ease-out}
+@keyframes flip{0%{transform:rotateX(-90deg);filter:brightness(.4)}60%{transform:rotateX(12deg)}100%{transform:rotateX(0)}}
+.t-flap .name .fl{color:#f2f2ea}
+.t-flap .logo .fl{font-size:16px}
+.t-flap .bar{height:18px;background:none;border-radius:0;display:flex;gap:2px}
+.t-flap .bar b{flex:1;background:linear-gradient(#2c2c2c 50%,#222 50%);border-radius:2px;transition:background .3s}
+.t-flap .bar b.on{background:linear-gradient(#ffd633 50%,#e6b800 50%)}
+.t-flap .bar b.half{background:linear-gradient(#6b5a14 50%,#5a4b10 50%)}
+.t-flap .name{overflow:visible}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body class="t-glass">
+<header>
+  <div class="brand">
+<pre id="banner" aria-hidden="true"> ___   ___   ___   ___   ___    _       ___      _     ___
+/ __| | _ \ | __| | __| |   \  | |     / _ \    /_\   |   \
+\__ \ |  _/ | _|  | _|  | |) | | |__  | (_) |  / _ \  | |) |
+|___/ |_|   |___| |___| |___/  |____|  \___/  /_/ \_\ |___/</pre>
+    <span class="logo f" data-w="9">Speedload</span>
+    <span id="total" class="f" data-w="14"></span>
+  </div>
+  <form id="addf"><input id="url" placeholder="Download-Link einfügen…" autocomplete="off" aria-label="Download-Link"><button class="primary">Laden</button></form>
+  <button id="setb" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+  <button id="quitb" title="Beenden (Downloads gehen beim nächsten Start weiter)" aria-label="Beenden">⏻</button>
+</header>
+<main id="list"></main>
+<p id="empty">Noch keine Downloads. Link oben einfügen oder im Browser herunterladen.</p>
+<div id="off" hidden><div><h2>Speedload ist beendet</h2><p>Zum Weiterladen Speedload neu starten.</p></div></div>
+<div id="toast" role="status"></div>
+
+<dialog id="dlg">
+  <form method="dialog" id="setf">
+    <h2>Einstellungen</h2>
+    <fieldset><legend>Design</legend>
+      <div class="themes">
+        <label><input type="radio" name="theme" value="glass"><div class="pv p-glass"><span>Glas</span></div>Glassmorphism</label>
+        <label><input type="radio" name="theme" value="ascii"><div class="pv p-ascii">[####....]</div>ASCII-Art</label>
+        <label><input type="radio" name="theme" value="flap"><div class="pv p-flap"><b>4</b><b>2</b><b>%</b></div>Split-Flap</label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Verbindungen pro Download: <b id="cv"></b></legend>
+      <div class="set-row"><input type="range" name="conns" min="1" max="32" id="conns"></div>
+    </fieldset>
+    <fieldset><legend>Speicherort</legend>
+      <div class="set-row"><input type="text" name="dir" id="dir" aria-label="Speicherort"></div>
+    </fieldset>
+    <div class="dlg-acts"><button value="cancel" formnovalidate>Abbrechen</button><button value="ok" class="primary" id="saveb">Speichern</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const cards = new Map();
+let theme = 'glass';
+const LABEL = { wait: 'Prüfe', run: 'Lädt', pause: 'Pausiert', done: 'Fertig', error: 'Fehler' };
+const BTN = {
+  glass: { pause: '❚❚', resume: '▶', open: '📂', remove: '✕' },
+  ascii: { pause: '[pause]', resume: '[weiter]', open: '[ordner]', remove: '[x]' },
+  flap: { pause: 'PAUSE', resume: 'WEITER', open: 'ORDNER', remove: '✕' },
+};
+const TIP = { pause: 'Pausieren', resume: 'Fortsetzen', open: 'Ordner öffnen', remove: 'Entfernen' };
+
+const fmtB = b => { if (b == null) return '?'; const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0; while (b >= 1024 && i < 4) { b /= 1024; i++; } return b.toFixed(i ? 1 : 0) + ' ' + u[i]; };
+const fmtT = s => !isFinite(s) || s < 0 ? '--:--' : s >= 3600 ? `${Math.floor(s / 3600)}h${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}m` : `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+// Text setzen; im Split-Flap-Design Zeichen für Zeichen mit Klapp-Animation
+function setF(el, text) {
+  if (theme !== 'flap' || !el.classList.contains('f')) { if (el.textContent !== text) el.textContent = text; el.title = text; return; }
+  const w = +el.dataset.w || text.length;
+  text = text.toUpperCase().padEnd(w).slice(0, w);
+  if (el.children.length !== w) el.innerHTML = '<span class="fl"></span>'.repeat(w);
+  [...el.children].forEach((c, i) => {
+    if (c.textContent !== text[i]) { c.textContent = text[i]; c.classList.remove('flip'); void c.offsetWidth; c.classList.add('flip'); }
+  });
+}
+
+// Anteil geladener Bytes je Zelle; offene Lücken = [pos, end) jedes Segments
+function cells(j, n) {
+  const out = [], step = j.size / n;
+  for (let k = 0; k < n; k++) {
+    const a = k * step, b = a + step;
+    let hole = 0;
+    for (const [p, e] of j.segs) hole += Math.max(0, Math.min(b, e) - Math.max(a, p));
+    out.push(1 - hole / step);
+  }
+  return out;
+}
+
+function drawBar(el, j) {
+  const known = j.size != null && j.size > 0;
+  el.classList.toggle('indet', !known && j.status === 'run');
+  if (theme === 'ascii') {
+    const n = 48, c = known ? cells(j, n) : Array(n).fill(j.status === 'done' ? 1 : 0);
+    el.textContent = '[' + c.map(f => f >= 0.999 ? '#' : f > 0 ? '=' : '.').join('') + ']';
+    return;
+  }
+  if (theme === 'flap') {
+    const n = 40, c = known ? cells(j, n) : Array(n).fill(j.status === 'done' ? 1 : 0);
+    if (el.children.length !== n) el.innerHTML = '<b></b>'.repeat(n);
+    [...el.children].forEach((b, i) => b.className = c[i] >= 0.999 ? 'on' : c[i] > 0 ? 'half' : '');
+    return;
+  }
+  el.innerHTML = !known ? '' : j.segs.map(([p, e]) => `<i style="left:${p / j.size * 100}%;width:${(e - p) / j.size * 100}%"></i>`).join('');
+  if (!known && j.status !== 'done') el.style.background = 'var(--hole)'; else el.style.background = '';
+}
+
+function card(j) {
+  let c = cards.get(j.id);
+  if (c) return c;
+  const el = document.createElement('article');
+  el.className = 'job';
+  el.innerHTML = `<div class="row"><span class="name f" data-w="26"></span><span class="st"></span></div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="row"><span class="pct meta f" data-w="4"></span><span class="spd meta f" data-w="11"></span><span class="eta meta f" data-w="6"></span><span class="sz meta"></span>
+    <span class="acts">${Object.keys(TIP).map(a => `<button data-a="${a}" title="${TIP[a]}" aria-label="${TIP[a]}">${BTN[theme][a]}</button>`).join('')}</span></div>
+    <div class="err"></div>`;
+  el.addEventListener('click', e => act(j.id, e.target.closest('button')?.dataset.a));
+  c = { el, q: s => el.querySelector(s), j };
+  cards.set(j.id, c);
+  return c;
+}
+
+async function act(id, a) {
+  if (!a) return;
+  const c = cards.get(id);
+  if (a === 'remove' && c.j.status !== 'done' && !confirm(`„${c.j.name}" abbrechen? Die halb geladene Datei wird gelöscht.`)) return;
+  try { await post('/api/' + a, { id }); if (a === 'remove') { c.el.remove(); cards.delete(id); } poll(); } catch (e) { toast(e); }
+}
+
+function render(jobs) {
+  jobs.sort((a, b) => b.id - a.id);
+  const list = $('#list');
+  let total = 0;
+  jobs.forEach((j, i) => {
+    const c = card(j); c.j = j;
+    if (list.children[i] !== c.el) list.insertBefore(c.el, list.children[i] || null);
+    const known = j.size != null && j.size > 0;
+    const pct = j.status === 'done' ? 100 : known ? Math.floor(j.done / j.size * 100) : 0;
+    const live = j.status === 'run';
+    total += live ? j.speed : 0;
+    setF(c.q('.name'), j.name);
+    const st = c.q('.st');
+    st.className = 'st ' + j.status;
+    st.textContent = live && j.err ? 'Wiederhole' : LABEL[j.status] || j.status;
+    setF(c.q('.pct'), (known || j.status === 'done' ? pct + '%' : '').padStart(4));
+    setF(c.q('.spd'), live ? fmtB(j.speed) + '/s' : '');
+    setF(c.q('.eta'), live && known && j.speed ? fmtT((j.size - j.done) / j.speed) : '');
+    c.q('.sz').textContent = `${fmtB(j.done)} / ${fmtB(j.size)}`;
+    const bar = c.q('.bar'); bar.setAttribute('aria-valuenow', pct); drawBar(bar, j);
+    c.q('.err').textContent = j.err ? (live ? 'Verbindung unterbrochen, versuche erneut: ' : '') + j.err : '';
+    c.q('[data-a=pause]').hidden = !(live || j.status === 'wait');
+    c.q('[data-a=resume]').hidden = !(j.status === 'pause' || j.status === 'error');
+  });
+  const ids = new Set(jobs.map(j => j.id));
+  for (const [id, c] of cards) if (!ids.has(id)) { c.el.remove(); cards.delete(id); }
+  $('#empty').hidden = jobs.length > 0;
+  setF($('#total'), '↓ ' + fmtB(total) + '/s');
+}
+
+const post = (p, b) => fetch(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) })
+  .then(async r => { const v = await r.json(); if (!r.ok) throw v.error; return v; });
+
+let timer;
+async function poll() {
+  clearTimeout(timer);
+  try { render(await (await fetch('/api/list')).json()); $('#off').hidden = true; } catch { $('#off').hidden = false; }
+  timer = setTimeout(poll, 600);
+}
+
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 3500); }
+
+function applyTheme(t) {
+  theme = t;
+  document.body.className = 't-' + t;
+  cards.forEach(c => c.el.remove()); cards.clear();
+  document.querySelectorAll('.f').forEach(el => { el.textContent = ''; });
+  setF($('.logo'), 'Speedload');
+  poll();
+}
+
+$('#addf').addEventListener('submit', async e => {
+  e.preventDefault();
+  const url = $('#url').value.trim();
+  if (!url) return;
+  try { await post('/api/add', { url }); $('#url').value = ''; poll(); } catch (err) { toast(err); }
+});
+
+$('#setb').onclick = async () => {
+  const s = await (await fetch('/api/settings')).json();
+  $(`[name=theme][value=${s.theme}]`).checked = true;
+  $('#conns').value = s.conns; $('#cv').textContent = s.conns;
+  $('#dir').value = s.dir;
+  $('#dlg').showModal();
+};
+$('#conns').oninput = e => $('#cv').textContent = e.target.value;
+document.querySelectorAll('[name=theme]').forEach(r => r.onchange = () => applyTheme(r.value)); // Live-Vorschau
+$('#dlg').addEventListener('close', async () => {
+  const f = new FormData($('#setf'));
+  if ($('#dlg').returnValue !== 'ok') { applyTheme(saved); return; }
+  try { await post('/api/settings', { theme: f.get('theme'), conns: +f.get('conns'), dir: f.get('dir') }); saved = f.get('theme'); } catch (e) { toast(e); applyTheme(saved); }
+});
+$('#quitb').onclick = async () => { if (confirm('Speedload beenden? Laufende Downloads gehen beim nächsten Start weiter.')) { await post('/api/quit', {}); setTimeout(() => window.close(), 300); } };
+
+let saved = 'glass';
+fetch('/api/settings').then(r => r.json()).then(s => { saved = s.theme; applyTheme(s.theme); }).catch(() => poll());
+poll();
+</script>
+</body>
+</html>
