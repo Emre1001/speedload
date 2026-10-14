@@ -11,6 +11,8 @@
 
 Mehrere Verbindungen pro Download · setzt nach Abbruch fort · drei Designs
 
+**[Website & Download](https://emre1001.github.io/speedload/)**
+
 ![Lizenz](https://img.shields.io/badge/Lizenz-MIT-green)
 ![Rust](https://img.shields.io/badge/Rust-2021-orange)
 ![Größe](https://img.shields.io/badge/Binary-~2%20MB-blue)
@@ -170,6 +172,7 @@ Aufbau:
 | `src/main.rs` | Download-Engine, HTTP-API, Start |
 | `ui/index.html` | Oberfläche mit allen drei Designs, ohne Build-Schritt |
 | `extension/` | Browser-Erweiterung (Manifest V3) |
+| `docs/` | Website (GitHub Pages, eine HTML-Datei) |
 
 Die lokale API (`/api/add`, `/api/list`, `/api/pause`, `/api/resume`, `/api/remove`, `/api/settings`) akzeptiert nur Anfragen von `127.0.0.1` und Browser-Erweiterungen. Webseiten bekommen `403`.
 
