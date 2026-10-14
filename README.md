@@ -14,7 +14,7 @@ Mehrere Verbindungen pro Download · setzt nach Abbruch fort · drei Designs
 ![Lizenz](https://img.shields.io/badge/Lizenz-MIT-green)
 ![Rust](https://img.shields.io/badge/Rust-2021-orange)
 ![Größe](https://img.shields.io/badge/Binary-~2%20MB-blue)
-![Plattformen](https://img.shields.io/badge/Linux%20%C2%B7%20Windows%20%C2%B7%20macOS-lightgrey)
+![Plattformen](https://img.shields.io/badge/Linux%20%C2%B7%20Windows-lightgrey) ![macOS](https://img.shields.io/badge/macOS-bald-555555)
 
 </div>
 
@@ -36,7 +36,7 @@ Fällt das WLAN aus, geht der Strom weg oder stürzt etwas ab, ist nichts verlor
 | **Leicht** | Eine Datei, ca. 2 MB, keine Laufzeit, kein Electron, kein Webview. |
 | **3 Designs** | **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Umschaltbar in den Einstellungen mit Live-Vorschau. |
 | **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. |
-| **Überall** | Linux (Ubuntu, Linux Mint und andere), Windows, macOS. |
+| **Überall** | Linux (Ubuntu, Linux Mint und andere) und Windows. <sub>macOS: <s>folgt später</s></sub> |
 | **Privat** | Hört nur auf `127.0.0.1`. Keine Telemetrie, keine Konten, kein Netzwerkzugriff außer deinen Downloads. |
 
 ## Designs
@@ -51,7 +51,7 @@ Umschalten unter ⚙ Einstellungen:
 
 ### Fertige Programme
 
-Unter [Releases](../../releases) gibt es Programme für Linux, Windows und macOS (Intel und Apple Silicon) sowie die Browser-Erweiterung.
+Unter [Releases](../../releases) gibt es Programme für Linux und Windows sowie die Browser-Erweiterung. <sub><s>macOS (Intel und Apple Silicon): folgt später.</s></sub>
 
 ### Selbst bauen
 
@@ -73,9 +73,13 @@ Ergebnis: `target/release/speedload` (Windows: `speedload.exe`).
 
 Installiert nach `~/.local/bin`, legt einen Menüeintrag an und startet Speedload beim Login unsichtbar im Hintergrund (`--hidden`).
 
-### Windows und macOS
+### Windows
 
-`speedload.exe` bzw. `speedload` starten. Für Autostart eine Verknüpfung mit `--hidden` anlegen (Windows: `shell:startup`, macOS: Anmeldeobjekte).
+`speedload.exe` starten. Für Autostart eine Verknüpfung mit `--hidden` in `shell:startup` anlegen.
+
+### macOS
+
+<s>Folgt später.</s> Der Code enthält macOS-Pfade, es gibt aber noch keine Programme und keine Tests. Auf eigene Gefahr selbst bauen geht mit `cargo build --release`.
 
 ## Browser-Erweiterung
 
@@ -110,7 +114,7 @@ Daten und Einstellungen liegen hier:
 |---|---|
 | Linux | `~/.local/share/speedload` |
 | Windows | `%APPDATA%\speedload` |
-| macOS | `~/Library/Application Support/speedload` |
+| macOS (ungetestet) | `~/Library/Application Support/speedload` |
 
 ## So funktioniert es
 
@@ -134,7 +138,7 @@ Daten und Einstellungen liegen hier:
 - **Verbindungslimit am Server:** Manche Server antworten bei vielen Verbindungen mit `429`. Speedload wartet dann und versucht es erneut, schneller wird es nicht. Dann in den Einstellungen weniger Verbindungen wählen.
 - **Anmeldung nötig:** Downloads hinter einem Login scheitern, weil keine Cookies weitergegeben werden. `blob:`- und `data:`-Downloads bleiben beim Browser.
 - **Nur http(s).** Kein FTP, kein Torrent, keine Streams (HLS/DASH).
-- **Windows und macOS:** Der Code ist plattformübergreifend, getestet wurde bisher nur unter Linux. Fehler bitte als Issue melden.
+- **Windows:** Gebaut und getestet wird in GitHub Actions, Praxistests auf echten Windows-Rechnern fehlen noch. **macOS:** noch nicht unterstützt. Fehler bitte als Issue melden.
 
 ## Entwicklung
 
