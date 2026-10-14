@@ -11,7 +11,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const ADDR: &str = "127.0.0.1:7878";
 const UI: &str = include_str!("../ui/index.html");
@@ -36,14 +36,27 @@ struct Meta {
     size: u64,
     ranges: bool,
     segs: Vec<Seg>, // leer = Server noch nicht geprüft
-    status: String, // wait | run | pause | done | error
+    status: String, // queue | wait | run | pause | done | error
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
 struct Settings {
     theme: String,
     conns: usize,
     dir: PathBuf,
+    max_active: usize,  // gleichzeitige Downloads, Rest wartet in der Warteschlange
+    limit_kbps: u64,    // 0 = unbegrenzt
+    autoresume: bool,   // unterbrochene Downloads beim Start fortsetzen
+    capture: bool,      // Browser-Downloads übernehmen
+    min_size_mb: u64,   // kleinere Browser-Downloads dem Browser lassen
+    ui: Value,          // reine Oberflächen-Einstellungen, vom Server nur gespeichert
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Settings { theme: "glass".into(), conns: 8, dir: download_dir(), max_active: 3, limit_kbps: 0, autoresume: true, capture: true, min_size_mb: 0, ui: json!({}) }
+    }
 }
 
 struct Inner {
@@ -72,6 +85,8 @@ struct App {
     data: PathBuf,
     agent: ureq::Agent,
     quitting: AtomicBool,
+    sched: Mutex<()>,           // Warteschlange: nur ein Thread entscheidet gleichzeitig
+    next_free: Mutex<Instant>,  // Tempolimit: frühester Zeitpunkt für die nächsten Bytes
 }
 
 fn main() {
@@ -90,16 +105,25 @@ fn main() {
 
 fn new_app(data: PathBuf) -> Arc<App> {
     let _ = fs::create_dir_all(data.join("jobs"));
-    let cfg = fs::read(data.join("settings.json"))
+    let cfg: Settings = fs::read(data.join("settings.json"))
         .ok()
         .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or_else(|| Settings { theme: "glass".into(), conns: 8, dir: download_dir() });
+        .unwrap_or_default();
     let agent = ureq::AgentBuilder::new()
         .timeout_connect(Duration::from_secs(15))
         .timeout_read(Duration::from_secs(30)) // tote Verbindung (WLAN weg) wird erkannt und neu aufgebaut
-        .user_agent("Mozilla/5.0 Speedload/0.1")
+        .user_agent("Mozilla/5.0 Speedload/0.2")
         .build();
-    let app = Arc::new(App { jobs: Mutex::new(vec![]), cfg: Mutex::new(cfg), data, agent, quitting: AtomicBool::new(false) });
+    let autoresume = cfg.autoresume;
+    let app = Arc::new(App {
+        jobs: Mutex::new(vec![]),
+        cfg: Mutex::new(cfg),
+        data,
+        agent,
+        quitting: AtomicBool::new(false),
+        sched: Mutex::new(()),
+        next_free: Mutex::new(Instant::now()),
+    });
     let mut metas: Vec<Meta> = fs::read_dir(app.data.join("jobs"))
         .into_iter()
         .flatten()
@@ -108,14 +132,13 @@ fn new_app(data: PathBuf) -> Arc<App> {
         .filter_map(|e| serde_json::from_slice(&fs::read(e.path()).ok()?).ok())
         .collect();
     metas.sort_by_key(|m| m.id);
-    for m in metas {
-        let resume = m.status == "run" || m.status == "wait"; // war beim Beenden/Absturz aktiv
-        let job = new_job(m);
-        app.jobs.lock().unwrap().push(job.clone());
-        if resume {
-            start(&app, job);
+    for mut m in metas {
+        if ["run", "wait", "queue"].contains(&m.status.as_str()) {
+            m.status = if autoresume { "queue" } else { "pause" }.into(); // war beim Beenden/Absturz aktiv
         }
+        app.jobs.lock().unwrap().push(new_job(m));
     }
+    schedule(&app);
     app
 }
 
@@ -125,7 +148,35 @@ fn new_job(meta: Meta) -> Arc<Job> {
 
 // ---------- Download-Engine ----------
 
-fn start(app: &Arc<App>, job: Arc<Job>) {
+/// Startet wartende Downloads, solange weniger als `max_active` laufen.
+fn schedule(app: &Arc<App>) {
+    let _g = app.sched.lock().unwrap();
+    let max = app.cfg.lock().unwrap().max_active.max(1);
+    let jobs = app.jobs.lock().unwrap().clone();
+    let mut active = jobs.iter().filter(|j| j.f.running.load(Relaxed)).count();
+    for j in jobs {
+        if active >= max {
+            break;
+        }
+        if j.inner.lock().unwrap().meta.status == "queue" && !j.f.running.load(Relaxed) {
+            run(app, j);
+            active += 1;
+        }
+    }
+}
+
+/// Reiht einen Download ein; er startet, sobald ein Platz frei ist.
+fn enqueue(app: &Arc<App>, job: &Arc<Job>) {
+    if job.f.running.load(Relaxed) {
+        return;
+    }
+    job.inner.lock().unwrap().meta.status = "queue".into();
+    job.err.lock().unwrap().clear();
+    save(app, job);
+    schedule(app);
+}
+
+fn run(app: &Arc<App>, job: Arc<Job>) {
     if job.f.running.swap(true, Relaxed) {
         return;
     }
@@ -164,6 +215,9 @@ fn start(app: &Arc<App>, job: Arc<Job>) {
         if job.f.removed.load(Relaxed) {
             cleanup(&app, &job);
         }
+        if !app.quitting.load(Relaxed) {
+            schedule(&app);
+        }
     });
 }
 
@@ -173,7 +227,7 @@ fn fail(g: &mut Inner, job: &Job, e: String) {
 }
 
 /// Ok(true) = fertig, Ok(false) = gestoppt.
-fn download(app: &App, job: &Arc<Job>) -> Result<bool, String> {
+fn download(app: &Arc<App>, job: &Arc<Job>) -> Result<bool, String> {
     let conns = app.cfg.lock().unwrap().conns.clamp(1, 32);
     let (url, referer, probed) = {
         let g = job.inner.lock().unwrap();
@@ -211,8 +265,8 @@ fn download(app: &App, job: &Arc<Job>) -> Result<bool, String> {
     let n = job.inner.lock().unwrap().meta.segs.len();
     let workers: Vec<_> = (0..n)
         .map(|i| {
-            let (job, agent) = (job.clone(), app.agent.clone());
-            thread::spawn(move || worker(&job, &agent, i))
+            let (job, app) = (job.clone(), app.clone());
+            thread::spawn(move || worker(&app, &job, i))
         })
         .collect();
     let mut last = done_bytes(&job.inner.lock().unwrap().meta);
@@ -255,7 +309,8 @@ fn split(m: &mut Meta) -> Option<usize> {
     Some(m.segs.len() - 1)
 }
 
-fn worker(job: &Job, agent: &ureq::Agent, mut i: usize) {
+fn worker(app: &App, job: &Job, mut i: usize) {
+    let agent = &app.agent;
     let mut wait = 1;
     let mut buf = vec![0u8; 64 * 1024];
     while !job.f.stop.load(Relaxed) {
@@ -329,15 +384,34 @@ fn worker(job: &Job, agent: &ureq::Agent, mut i: usize) {
                 return;
             }
             s.pos += take as u64;
+            let seg_done = take < n || s.pos >= s.end; // Segment geteilt oder fertig
+            drop(g);
+            throttle(app, take as u64);
             if wait > 1 {
                 wait = 1;
                 job.err.lock().unwrap().clear();
             }
-            if take < n || s.pos >= s.end {
+            if seg_done {
                 break;
             }
         }
     }
+}
+
+/// Globales Tempolimit: jeder Block reserviert seinen Zeitanteil, der Worker wartet bis dahin.
+fn throttle(app: &App, n: u64) {
+    let limit = app.cfg.lock().unwrap().limit_kbps * 1024;
+    if limit == 0 {
+        return;
+    }
+    let wait = {
+        let mut next = app.next_free.lock().unwrap();
+        let now = Instant::now();
+        let at = (*next).max(now);
+        *next = at + Duration::from_secs_f64(n as f64 / limit as f64);
+        at - now
+    };
+    thread::sleep(wait);
 }
 
 fn retry(job: &Job, wait: &mut u64, e: String) {
@@ -505,9 +579,11 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
                 return Err("unbekanntes Design".into());
             }
             s.conns = s.conns.clamp(1, 32);
+            s.max_active = s.max_active.clamp(1, 20);
             fs::create_dir_all(&s.dir).map_err(|e| format!("Ordner: {e}"))?;
             let _ = fs::write(app.data.join("settings.json"), serde_json::to_vec(&s).unwrap());
             *app.cfg.lock().unwrap() = s;
+            schedule(app); // mehr Plätze frei? Warteschlange nachziehen
             Ok(json!({ "ok": true }))
         }
         ("POST", "add") => {
@@ -515,14 +591,62 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
             if !(url.starts_with("http://") || url.starts_with("https://")) {
                 return Err("Nur http(s)-Links".into());
             }
+            if v["source"] == "browser" {
+                let cfg = app.cfg.lock().unwrap();
+                let small = v["size"].as_u64().is_some_and(|n| n > 0 && n < cfg.min_size_mb * 1024 * 1024);
+                if !cfg.capture || small {
+                    return Err("Browser lädt selbst".into()); // Erweiterung lässt den Browser-Download laufen
+                }
+            }
+            // Gleicher Link läuft schon oder wartet: kein zweiter Download
+            let dup = app.jobs.lock().unwrap().iter().find(|j| {
+                let m = &j.inner.lock().unwrap().meta;
+                m.url == url && !["done", "error"].contains(&m.status.as_str())
+            }).cloned();
+            if let Some(j) = dup {
+                let (id, paused) = { let m = &j.inner.lock().unwrap().meta; (m.id, m.status == "pause") };
+                if paused {
+                    enqueue(app, &j); // erneut angeklickt: pausierten Download fortsetzen
+                }
+                return Ok(json!({ "id": id, "dup": true }));
+            }
             Ok(json!({ "id": add(app, url, v["referrer"].as_str().unwrap_or("")) }))
         }
         ("POST", "pause") => {
-            job()?.f.stop.store(true, Relaxed);
+            let j = job()?;
+            if j.f.running.load(Relaxed) {
+                j.f.stop.store(true, Relaxed); // Download-Thread setzt "pause"
+            } else {
+                let mut g = j.inner.lock().unwrap();
+                if g.meta.status == "queue" {
+                    g.meta.status = "pause".into();
+                }
+                drop(g);
+                save(app, &j);
+            }
             Ok(json!({ "ok": true }))
         }
         ("POST", "resume") => {
-            start(app, job()?);
+            enqueue(app, &job()?);
+            Ok(json!({ "ok": true }))
+        }
+        ("POST", "clear") => {
+            // Fertige aus der Liste nehmen, Dateien bleiben
+            let done: Vec<_> = app.jobs.lock().unwrap().iter().filter(|j| j.inner.lock().unwrap().meta.status == "done").cloned().collect();
+            for j in &done {
+                j.f.removed.store(true, Relaxed);
+                cleanup(app, j);
+            }
+            app.jobs.lock().unwrap().retain(|j| !j.f.removed.load(Relaxed));
+            Ok(json!({ "removed": done.len() }))
+        }
+        ("POST", "openfile") => {
+            let j = job()?;
+            let g = j.inner.lock().unwrap();
+            if g.meta.status != "done" {
+                return Err("Datei ist noch nicht fertig".into());
+            }
+            opener(&g.meta.dir.join(&g.meta.name).to_string_lossy());
             Ok(json!({ "ok": true }))
         }
         ("POST", "remove") => {
@@ -561,11 +685,11 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
 fn add(app: &Arc<App>, url: &str, referer: &str) -> u64 {
     let id = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_micros() as u64;
     let dir = app.cfg.lock().unwrap().dir.clone();
-    let meta = Meta { id, url: url.into(), referer: referer.into(), name: sanitize(&url_name(url)), dir, size: UNKNOWN, ranges: false, segs: vec![], status: "wait".into() };
+    let meta = Meta { id, url: url.into(), referer: referer.into(), name: sanitize(&url_name(url)), dir, size: UNKNOWN, ranges: false, segs: vec![], status: "queue".into() };
     let job = new_job(meta);
     app.jobs.lock().unwrap().push(job.clone());
     save(app, &job);
-    start(app, job);
+    schedule(app);
     id
 }
 
@@ -575,7 +699,8 @@ fn job_json(j: &Job) -> Value {
     json!({
         "id": m.id, "name": m.name, "url": m.url, "status": m.status,
         "size": if m.size == UNKNOWN { Value::Null } else { json!(m.size) },
-        "done": done_bytes(m), "speed": j.speed.load(Relaxed),
+        "done": done_bytes(m), "speed": j.speed.load(Relaxed), "ranges": m.ranges,
+        "dir": m.dir, "conns": m.segs.iter().filter(|s| s.pos < s.end).count(),
         "err": *j.err.lock().unwrap(),
         "segs": m.segs.iter().filter(|s| s.pos < s.end).map(|s| [s.pos, s.end]).collect::<Vec<_>>(),
     })
@@ -693,6 +818,50 @@ mod tests {
         panic!("Timeout");
     }
 
+    fn test_app(tag: &str, s: Settings) -> (Arc<App>, PathBuf) {
+        let dir = std::env::temp_dir().join(format!("speedload-{tag}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("settings.json"), serde_json::to_vec(&Settings { dir: dir.join("out"), ..s }).unwrap()).unwrap();
+        (new_app(dir.clone()), dir)
+    }
+
+    fn status(app: &App, id: u64) -> String {
+        app.jobs.lock().unwrap().iter().map(|j| j.inner.lock().unwrap().meta.clone()).find(|m| m.id == id).unwrap().status
+    }
+
+    #[test]
+    fn browser_rules_and_queue() {
+        let data: Arc<Vec<u8>> = Arc::new(vec![7u8; 6_000_000]);
+        let url = serve(data);
+        let (app, dir) = test_app("rules", Settings { max_active: 1, min_size_mb: 10, ..Settings::default() });
+        // Browser-Download unter Mindestgröße: Browser lädt selbst
+        assert!(api(&app, "POST", "add", &json!({ "url": url, "source": "browser", "size": 5_000_000 })).is_err());
+        // Gleicher Link zweimal: nur ein Job
+        let a = api(&app, "POST", "add", &json!({ "url": url })).unwrap()["id"].as_u64().unwrap();
+        let b = api(&app, "POST", "add", &json!({ "url": url })).unwrap();
+        assert_eq!((b["id"].as_u64().unwrap(), b["dup"].as_bool()), (a, Some(true)));
+        // max_active = 1: zweiter Link wartet in der Warteschlange
+        let c = api(&app, "POST", "add", &json!({ "url": format!("{url}?2") })).unwrap()["id"].as_u64().unwrap();
+        thread::sleep(Duration::from_millis(300));
+        assert_eq!(status(&app, c), "queue");
+        wait_until(&app, |j| j.inner.lock().unwrap().meta.status == "done");
+        assert_eq!(api(&app, "POST", "clear", &json!({})).unwrap()["removed"], 2);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn speed_limit() {
+        let (app, dir) = test_app("limit", Settings { limit_kbps: 1000, ..Settings::default() });
+        let t = Instant::now();
+        for _ in 0..20 {
+            throttle(&app, 100 * 1024); // 2000 KiB bei 1000 KiB/s
+        }
+        let secs = t.elapsed().as_secs_f64();
+        assert!((1.8..2.5).contains(&secs), "{secs}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn resumes_after_restart() {
         let data: Arc<Vec<u8>> = Arc::new((0..20_000_000u32).map(|i| (i * 7 % 251) as u8).collect());
@@ -700,7 +869,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("speedload-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
-        let s = Settings { theme: "glass".into(), conns: 8, dir: dir.join("out") };
+        let s = Settings { dir: dir.join("out"), ..Settings::default() };
         fs::write(dir.join("settings.json"), serde_json::to_vec(&s).unwrap()).unwrap();
 
         let app = new_app(dir.clone());

@@ -34,7 +34,10 @@ Fällt das WLAN aus, geht der Strom weg oder stürzt etwas ab, ist nichts verlor
 | **Fortsetzen** | Netz weg: automatischer Neuversuch mit Pausen bis 30 s. Strom weg oder Absturz: Weiter beim nächsten Start. |
 | **Sicher gespeichert** | Fortschritt wird jede Sekunde gesichert, erst die Daten, dann der Stand. Nach einem Stromausfall steht nie Fortschritt ohne Daten da. |
 | **Leicht** | Eine Datei, ca. 2 MB, keine Laufzeit, kein Electron, kein Webview. |
-| **3 Designs** | **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Umschaltbar in den Einstellungen mit Live-Vorschau. |
+| **3 Designs** | **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Jedes in Hell und Dunkel, folgt auf Wunsch dem System. Akzentfarbe wählbar. |
+| **Flüssig** | Weich mitlaufende Zahlen und Balken, Segment-Ansicht pro Verbindung, Tempo-Graph, animierte Übergänge. Animationen abschaltbar. |
+| **Warteschlange** | Bestimmt, wie viele Downloads gleichzeitig laufen. Der Rest wartet und startet automatisch. |
+| **Tempolimit** | Gesamtgeschwindigkeit begrenzen, damit für anderes noch Leitung übrig bleibt. |
 | **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. |
 | **Überall** | Linux (Ubuntu, Linux Mint und andere) und Windows. <sub>macOS: <s>folgt später</s></sub> |
 | **Privat** | Hört nur auf `127.0.0.1`. Keine Telemetrie, keine Konten, kein Netzwerkzugriff außer deinen Downloads. |
@@ -46,6 +49,19 @@ Umschalten unter ⚙ Einstellungen:
 - **Glassmorphism**: Milchglas-Karten über animiertem Farbverlauf.
 - **ASCII-Art**: Terminal-Look in Grün auf Schwarz, Fortschrittsbalken als `[#####==.....]`.
 - **Split-Flap**: Klapptafel wie am Bahnhof, jede Ziffer klappt einzeln um.
+
+Farbschema: System, Hell oder Dunkel. Dazu sieben Akzentfarben.
+
+## Einstellungen
+
+| Bereich | Einstellung |
+|---|---|
+| Darstellung | Design, Farbschema, Akzentfarbe, Animationen (System/Voll/Wenig/Aus), kompakte Liste, Tempo-Graph |
+| Downloads | Speicherort, Verbindungen pro Download (1–32), gleichzeitige Downloads (1–10), Tempolimit, beim Start fortsetzen |
+| Browser | Übernahme an/aus, Mindestgröße für übernommene Dateien |
+| Benachrichtigungen | Desktop-Meldung, Ton bei Fertig |
+
+Bedienhilfen: Link per <kbd>Strg</kbd>+<kbd>V</kbd> irgendwo einfügen oder ins Fenster ziehen, <kbd>/</kbd> springt ins Link-Feld, <kbd>Strg</kbd>+<kbd>,</kbd> öffnet die Einstellungen. Mehrere Links auf einmal gehen auch.
 
 ## Installation
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Speedload",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Übergibt Browser-Downloads an Speedload (mehrere Verbindungen, Fortsetzen nach Abbruch).",
   "permissions": ["downloads"],
   "host_permissions": ["http://127.0.0.1:7878/*"],
