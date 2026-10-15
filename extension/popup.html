@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Speedload</title>
+<style>
+:root{color-scheme:light dark;--bg:#fbfbfc;--fg:#1c1c1e;--muted:#6c6c70;--line:rgba(0,0,0,.08);--hover:rgba(0,0,0,.045);--track:rgba(0,0,0,.08);--acc:#0a6cff;--ok:#1f9d55;--bad:#d93025;--warn:#a86400}
+@media (prefers-color-scheme:dark){:root{--bg:#232325;--fg:#ececee;--muted:#9a9aa0;--line:rgba(255,255,255,.08);--hover:rgba(255,255,255,.06);--track:rgba(255,255,255,.1);--acc:#3d8bff;--ok:#3ccb7f;--bad:#ff6961;--warn:#e0a03a}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;width:360px;font:13px/1.4 system-ui,-apple-system,"Segoe UI",Ubuntu,Cantarell,sans-serif;color:var(--fg);background:var(--bg)}
+header{display:flex;align-items:baseline;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:14px;font-weight:600}
+#total{color:var(--muted);font-variant-numeric:tabular-nums}
+ul{list-style:none;margin:0;padding:4px 0;max-height:420px;overflow:auto}
+li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:8px 14px}
+li:hover{background:var(--hover)}
+.name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{grid-column:1;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.error .meta{color:var(--bad)}
+.retry .meta{color:var(--warn)}
+.done .meta{color:var(--ok)}
+.bar{grid-column:1;height:3px;border-radius:2px;background:var(--track);overflow:hidden;margin-top:3px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .5s linear}
+.pause .bar i,.queue .bar i,.error .bar i{background:var(--muted)}
+.done .bar{display:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;border-radius:6px}
+li button{grid-row:1/span 3;grid-column:2;width:28px;height:28px;display:grid;place-items:center;color:var(--muted)}
+li button:hover{background:var(--hover);color:var(--fg)}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.note{margin:0;padding:22px 14px;text-align:center;color:var(--muted)}
+#more{padding:2px 14px 8px;color:var(--muted);font-size:12px}
+footer{border-top:1px solid var(--line);padding:6px}
+#open{width:100%;padding:7px;color:var(--acc);font-weight:500}
+#open:hover{background:var(--hover)}
+</style>
+</head>
+<body>
+<header><h1>Speedload</h1><span id="total"></span></header>
+<p class="note" id="off" hidden>Speedload läuft nicht.<br>Starte die App, dann erscheinen hier deine Downloads.</p>
+<p class="note" id="empty" hidden>Noch keine Downloads.</p>
+<ul id="list"></ul>
+<div id="more" hidden></div>
+<footer><button id="open">Speedload öffnen</button></footer>
+<script src="popup.js"></script>
+</body>
+</html>

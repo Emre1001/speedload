@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: (cd extension && zip -r ../speedload-extension.xpi manifest.json background.js)
+      - run: (cd extension && zip -r ../speedload-extension.xpi manifest.json background.js popup.html popup.js icons)
       - uses: actions/download-artifact@v4
         with:
           path: dist

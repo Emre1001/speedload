@@ -36,11 +36,11 @@ Fällt das WLAN aus, geht der Strom weg oder stürzt etwas ab, ist nichts verlor
 | **Fortsetzen** | Netz weg: automatischer Neuversuch mit Pausen bis 30 s. Strom weg oder Absturz: Weiter beim nächsten Start. |
 | **Sicher gespeichert** | Fortschritt wird jede Sekunde gesichert, erst die Daten, dann der Stand. Nach einem Stromausfall steht nie Fortschritt ohne Daten da. |
 | **Leicht** | Eine Datei, ca. 2 MB, keine Laufzeit, kein Electron, kein Webview. |
-| **3 Designs** | **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Jedes in Hell und Dunkel, folgt auf Wunsch dem System. Akzentfarbe wählbar. |
+| **4 Designs** | **Standard** (schlicht wie eine System-App, voreingestellt), **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Jedes in Hell und Dunkel, folgt auf Wunsch dem System. Akzentfarbe wählbar. |
 | **Flüssig** | Weich mitlaufende Zahlen und Balken, Segment-Ansicht pro Verbindung, Tempo-Graph, animierte Übergänge. Animationen abschaltbar. |
 | **Warteschlange** | Bestimmt, wie viele Downloads gleichzeitig laufen. Der Rest wartet und startet automatisch. |
 | **Tempolimit** | Gesamtgeschwindigkeit begrenzen, damit für anderes noch Leitung übrig bleibt. |
-| **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. |
+| **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. Klick aufs Symbol zeigt die Downloads in einem kleinen Fenster, mit Pause, Fortsetzen und Öffnen. |
 | **Überall** | Linux (Ubuntu, Linux Mint und andere) und Windows. <sub>macOS: <s>folgt später</s></sub> |
 | **Privat** | Hört nur auf `127.0.0.1`. Keine Telemetrie, keine Konten, kein Netzwerkzugriff außer deinen Downloads. |
 
@@ -48,6 +48,7 @@ Fällt das WLAN aus, geht der Strom weg oder stürzt etwas ab, ist nichts verlor
 
 Umschalten unter ⚙ Einstellungen:
 
+- **Standard**: ruhig und aufgeräumt wie eine normale Desktop-App. Eine Liste, ein Fortschrittsbalken, Systemschrift.
 - **Glassmorphism**: Milchglas-Karten über animiertem Farbverlauf.
 - **ASCII-Art**: Terminal-Look in Grün auf Schwarz, Fortschrittsbalken als `[#####==.....]`.
 - **Split-Flap**: Klapptafel wie am Bahnhof, jede Ziffer klappt einzeln um.
@@ -113,7 +114,7 @@ Speedload funktioniert auch ohne Erweiterung: Link in das Feld einfügen, fertig
 
 **Mullvad Browser** (dauerhaft)
 
-1. `speedload.xpi` erzeugen: `./install-linux.sh` oder `cd extension && python3 -m zipfile -c ../speedload.xpi manifest.json background.js`. Fertige `.xpi` gibt es auch bei den Releases.
+1. `speedload.xpi` erzeugen: `./install-linux.sh` oder `cd extension && python3 -m zipfile -c ../speedload.xpi manifest.json background.js popup.html popup.js icons`. Fertige `.xpi` gibt es auch bei den Releases.
 2. `about:config` → `xpinstall.signatures.required` auf `false`.
 3. `about:addons` → Zahnrad → „Add-on aus Datei installieren“ → `speedload.xpi`.
 4. Bei Speedload „In privaten Fenstern ausführen“ auf **Erlauben** stellen. Pflicht: Mullvad Browser läuft immer im privaten Modus.

@@ -161,12 +161,14 @@ main{max-width:1120px;margin:0 auto;padding:8px 24px 90px;display:grid;gap:12px}
 .swatches label:hover span{transform:scale(1.08)}
 .swatches input:checked+span{box-shadow:0 0 0 2px var(--fg);transform:scale(1.12)}
 .swatches .auto{background:conic-gradient(#a594ff,#4fe3ff,#4ade9a,#ffcc00,#ff7a59,#ff5fa2,#a594ff)}
-.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .themes label{cursor:pointer;display:grid;gap:6px;text-align:center;font-size:12.5px;color:var(--muted)}
 .themes label:has(input:checked){color:var(--fg);font-weight:600}
-.pv{height:64px;border-radius:10px;display:grid;place-items:center;overflow:hidden;border:2px solid var(--border);transition:border-color var(--dur),transform .25s var(--ease)}
+.pv{height:56px;border-radius:10px;display:grid;place-items:center;overflow:hidden;border:2px solid var(--border);transition:border-color var(--dur),transform .25s var(--ease)}
 .themes label:hover .pv{transform:translateY(-2px)}
 .themes input:checked+.pv{border-color:var(--acc)}
+.p-std{background:#ececef}
+.p-std span{background:#fff;color:#1c1c1e;border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:4px 12px;font:500 12px system-ui,sans-serif;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .p-glass{background:radial-gradient(circle at 20% 30%,#ff5fa2,transparent 60%),radial-gradient(circle at 80% 70%,#3ee0ff,transparent 60%),#2a1f6b}
 .p-glass span{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(6px);padding:5px 12px;border-radius:9px;color:#fff;font:600 12px system-ui,sans-serif}
 .p-ascii{background:#040a05;color:#41ff85;font:12px ui-monospace,monospace;text-shadow:0 0 6px rgba(65,255,133,.5)}
@@ -208,6 +210,63 @@ html[data-motion=reduced]{--dur:.15s}
 html[data-motion=reduced] .blobs b,html[data-motion=reduced] .bar::after,html[data-motion=reduced] #empty .art svg,html[data-motion=reduced] .chip::before{animation:none!important}
 html[data-motion=off] *,html[data-motion=off] *::before,html[data-motion=off] *::after,html[data-motion=off] ::backdrop{animation:none!important;transition:none!important}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.45s}
+
+/* ===== Design: Standard (schlicht, wie System-Apps) ===== */
+.t-std{--font:system-ui,-apple-system,"Segoe UI",Ubuntu,Cantarell,"Noto Sans",sans-serif;--r:7px;
+  --bg:#f4f4f5;--fg:#1c1c1e;--muted:#6c6c70;--card:#fff;--card-hi:#fff;--border:rgba(0,0,0,.09);--border-hi:rgba(0,0,0,.16);
+  --btn:#fff;--btn-hi:rgba(0,0,0,.05);--input:#fff;--hdr:rgba(244,244,245,.86);--panel:#fbfbfc;--panel-solid:#fbfbfc;
+  --acc:#0a6cff;--on-acc:#fff;--ok:#1f9d55;--warn:#a86400;--bad:#d93025;--tip:transparent;
+  --track:rgba(0,0,0,.07);--fill:linear-gradient(var(--acc),var(--acc));--ok-fill:linear-gradient(var(--ok),var(--ok));
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 10px 30px rgba(0,0,0,.1);--shadow-sm:0 1px 2px rgba(0,0,0,.05)}
+html[data-scheme=dark] .t-std{--bg:#1b1b1d;--fg:#ececee;--muted:#9a9aa0;--card:#242426;--card-hi:#3a3a3d;--border:rgba(255,255,255,.08);--border-hi:rgba(255,255,255,.16);
+  --btn:#2c2c2f;--btn-hi:rgba(255,255,255,.07);--input:#202022;--hdr:rgba(27,27,29,.86);--panel:#252527;--panel-solid:#252527;
+  --acc:#3d8bff;--ok:#3ccb7f;--warn:#e0a03a;--bad:#ff6961;--track:rgba(255,255,255,.09);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.4);--shadow-sm:none}
+.t-std svg{stroke-width:1.75}
+.t-std .top{padding:10px 24px;backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px)}
+.t-std .logo{font-size:15px;font-weight:600;letter-spacing:0}
+.t-std .add input,.t-std .add button{height:34px}
+.t-std .add input{padding-left:34px}
+.t-std .add .add-ic{left:11px}
+.t-std .add .add-ic svg{width:15px;height:15px}
+.t-std .primary:hover{box-shadow:none;filter:brightness(1.07)}
+.t-std input[type=text]:focus,.t-std select:focus{box-shadow:0 0 0 3px color-mix(in oklab,var(--acc) 25%,transparent)}
+.t-std #total{font-size:13px;font-weight:600}
+.t-std button.icon{width:32px;height:32px;background:transparent;border-color:transparent;color:var(--muted)}
+.t-std button.icon:hover{background:var(--btn-hi);color:var(--fg)}
+.t-std .toolbar{margin-top:16px}
+.t-std .tabs{padding:2px;border:0;background:var(--track)}
+.t-std .tabs button{padding:4px 12px;font-size:13px}
+.t-std .tabs .ind{top:2px;bottom:2px;border-radius:5px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.05)}
+.t-std .tabs button b{min-width:0;padding:0 0 0 2px;background:none;color:var(--muted);font-weight:500}
+.t-std .bulk button{background:transparent;border-color:transparent;color:var(--muted)}
+.t-std .bulk button:hover{background:var(--btn-hi);color:var(--fg)}
+.t-std main{gap:0;padding:0;width:calc(100% - 48px);max-width:1072px;margin:6px auto 80px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.t-std main:empty{display:none}
+.t-std .job{grid-template-columns:36px minmax(0,1fr) auto;gap:2px 14px;padding:12px 16px;background:transparent;border:0;border-bottom:1px solid var(--border);border-radius:0;box-shadow:none}
+.t-std .job:last-child{border-bottom:0}
+.t-std .job:hover{transform:none;box-shadow:none;background:color-mix(in oklab,var(--fg) 3%,transparent)}
+.t-std .job.in{animation-duration:.3s}
+.t-std .job.out{margin-bottom:0}
+.t-std .job.yay{animation:none}
+.t-std.compact .job{padding:7px 14px}
+.t-std .ico{width:36px;height:36px;border:0;border-radius:8px;font-size:9.5px;background:color-mix(in oklab,var(--c) 12%,var(--card))}
+.t-std .name{font-size:14px;font-weight:500}
+.t-std .chip{padding:0;background:none;font-size:12px;font-weight:500}
+.t-std .chip::before{display:none}
+.t-std [data-st=run] .chip,.t-std [data-st=wait] .chip{color:var(--muted)}
+.t-std .sub{font-size:12px}
+.t-std .bar{height:4px;margin:6px 0 3px}
+.t-std .bar::after{display:none}
+.t-std .stats{font-size:12px}
+.t-std .stats .pct{font-weight:600}
+.t-std .spark{display:none}
+.t-std .acts{gap:2px}
+.t-std .acts button{width:30px;height:30px;background:transparent;border-color:transparent;color:var(--muted)}
+.t-std .acts button:hover{background:var(--btn-hi);color:var(--fg)}
+.t-std .acts button svg{width:16px;height:16px}
+.t-std .toast{backdrop-filter:none}
+@media (max-width:680px){.t-std main{width:calc(100% - 32px)}}
 
 /* ===== Design: Glas ===== */
 .t-glass{--font:system-ui,-apple-system,"Segoe UI",Ubuntu,Cantarell,sans-serif;--r:12px;
@@ -287,7 +346,7 @@ html[data-scheme=light] .t-flap{--bg:#e7e3d7;--fg:#1d1c19;--muted:#6e6b61;--card
 .t-flap .compact .bar{height:10px}
 </style>
 </head>
-<body class="t-glass">
+<body class="t-std">
 <div class="blobs" aria-hidden="true"><b></b><b></b><b></b></div>
 
 <header class="top">
@@ -336,8 +395,9 @@ html[data-scheme=light] .t-flap{--bg:#e7e3d7;--fg:#1d1c19;--muted:#6e6b61;--card
       <section><h3>Darstellung</h3>
         <div class="field"><span class="lbl">Design</span>
           <div class="themes">
-            <label><input type="radio" name="theme" data-k="theme" value="glass"><div class="pv p-glass"><span>Glas</span></div>Glassmorphism</label>
-            <label><input type="radio" name="theme" data-k="theme" value="ascii"><div class="pv p-ascii">[###...]_</div>ASCII-Art</label>
+            <label><input type="radio" name="theme" data-k="theme" value="std"><div class="pv p-std"><span>Aa</span></div>Standard</label>
+            <label><input type="radio" name="theme" data-k="theme" value="glass"><div class="pv p-glass"><span>Glas</span></div>Glas</label>
+            <label><input type="radio" name="theme" data-k="theme" value="ascii"><div class="pv p-ascii">[##..]_</div>ASCII</label>
             <label><input type="radio" name="theme" data-k="theme" value="flap"><div class="pv p-flap"><b>4</b><b>2</b><b>%</b></div>Split-Flap</label>
           </div>
         </div>
@@ -368,7 +428,7 @@ html[data-scheme=light] .t-flap{--bg:#e7e3d7;--fg:#1d1c19;--muted:#6e6b61;--card
           </div>
         </div>
         <label class="tog"><span>Kompakte Liste<small>Kleinere Karten, mehr auf einen Blick</small></span><input type="checkbox" data-u="compact"><i></i></label>
-        <label class="tog"><span>Tempo-Graph<small>Verlauf der Geschwindigkeit je Download</small></span><input type="checkbox" data-u="graph"><i></i></label>
+        <label class="tog"><span>Tempo-Graph<small>Verlauf der Geschwindigkeit je Download (nicht im Design Standard)</small></span><input type="checkbox" data-u="graph"><i></i></label>
       </section>
 
       <section><h3>Downloads</h3>
@@ -396,7 +456,7 @@ html[data-scheme=light] .t-flap{--bg:#e7e3d7;--fg:#1d1c19;--muted:#6e6b61;--card
       </section>
 
       <section class="about"><h3>Über</h3>
-        <p>Speedload 0.2.0 · MIT-Lizenz · <a href="https://github.com/Emre1001/speedload" target="_blank" rel="noopener">GitHub</a></p>
+        <p>Speedload 0.3.0 · MIT-Lizenz · <a href="https://github.com/Emre1001/speedload" target="_blank" rel="noopener">GitHub</a></p>
         <p><kbd>/</kbd> Link-Feld · <kbd>Strg</kbd>+<kbd>V</kbd> Link einfügen · <kbd>Strg</kbd>+<kbd>,</kbd> Einstellungen</p>
       </section>
     </div>
@@ -442,7 +502,7 @@ const TXT = { pause: 'pause', resume: 'weiter', retry: 'nochmal', folder: 'ordne
 const LONG = { pause: 'Alle pausieren', resume: 'Alle fortsetzen', clear: 'Fertige ausblenden', add: 'Laden' };
 const TIP = { pause: 'Pausieren', resume: 'Fortsetzen', retry: 'Erneut versuchen', folder: 'Ordner öffnen', openfile: 'Datei öffnen', copy: 'Link kopieren', remove: 'Entfernen' };
 function label(k, withText) {
-  if (theme === 'glass') return `<svg viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>${withText && LONG[k] ? `<span>${LONG[k]}</span>` : ''}`;
+  if (theme === 'std' || theme === 'glass') return `<svg viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>${withText && LONG[k] ? `<span>${LONG[k]}</span>` : ''}`;
   const t = withText && LONG[k] ? LONG[k] : TXT[k];
   if (!t) return '';
   return theme === 'ascii' ? `[${t.toLowerCase()}]` : t.toUpperCase();
@@ -511,7 +571,7 @@ async function loadSettings() {
 function applyLook() {
   const scheme = ui.scheme === 'system' ? (mqDark.matches ? 'dark' : 'light') : ui.scheme;
   const motion = ui.motion === 'auto' ? (mqMotion.matches ? 'reduced' : 'full') : ui.motion;
-  const newTheme = cfg.theme || 'glass';
+  const newTheme = cfg.theme || 'std';
   const go = () => {
     root.dataset.scheme = scheme;
     root.dataset.motion = motion;
@@ -522,7 +582,7 @@ function applyLook() {
     b.classList.toggle('nograph', !ui.graph);
     if (newTheme !== theme) {
       theme = newTheme;
-      b.classList.remove('t-glass', 't-ascii', 't-flap');
+      b.classList.remove('t-std', 't-glass', 't-ascii', 't-flap');
       b.classList.add('t-' + theme);
       rebuild();
     }
@@ -662,6 +722,7 @@ function drawBar(c) {
   if (!bar.firstElementChild) bar.innerHTML = '<div class="pcs"></div>';
   const pcs = [];
   if (j.status === 'done') pcs.push([0, 1]);
+  else if (known && theme === 'std') pcs.push([0, j.done / j.size]); // schlicht: ein durchgehender Balken
   else if (known) {
     let cur = 0;
     for (const [p, e] of [...j.segs].sort((a, b) => a[0] - b[0])) { if (p / j.size > cur) pcs.push([cur, p / j.size]); cur = Math.max(cur, e / j.size); }
@@ -713,7 +774,7 @@ function renderEmpty(show) {
   const k = theme + (jobs.length ? 'f' : 'n');
   if (!show || e.dataset.k === k) return;
   e.dataset.k = k;
-  const art = theme === 'glass' ? `<svg viewBox="0 0 24 24">${P.add}</svg>`
+  const art = theme === 'std' || theme === 'glass' ? `<svg viewBox="0 0 24 24">${P.add}</svg>`
     : theme === 'ascii' ? '<pre>  .-------.\n  |  |||  |\n  |  \\|/  |\n  \'-------\'</pre>' : '';
   e.innerHTML = `<div class="art">${art}</div><h2 class="f" data-w="15"></h2><p></p>`;
   setF($('h2', e), jobs.length ? 'Hier ist nichts' : 'Keine Downloads');

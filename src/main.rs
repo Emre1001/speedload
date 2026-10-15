@@ -55,7 +55,7 @@ struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { theme: "glass".into(), conns: 8, dir: download_dir(), max_active: 3, limit_kbps: 0, autoresume: true, capture: true, min_size_mb: 0, ui: json!({}) }
+        Settings { theme: "std".into(), conns: 8, dir: download_dir(), max_active: 3, limit_kbps: 0, autoresume: true, capture: true, min_size_mb: 0, ui: json!({}) }
     }
 }
 
@@ -112,7 +112,7 @@ fn new_app(data: PathBuf) -> Arc<App> {
     let agent = ureq::AgentBuilder::new()
         .timeout_connect(Duration::from_secs(15))
         .timeout_read(Duration::from_secs(30)) // tote Verbindung (WLAN weg) wird erkannt und neu aufgebaut
-        .user_agent("Mozilla/5.0 Speedload/0.2")
+        .user_agent("Mozilla/5.0 Speedload/0.3")
         .build();
     let autoresume = cfg.autoresume;
     let app = Arc::new(App {
@@ -575,7 +575,7 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
         ("GET", "settings") => Ok(json!(*app.cfg.lock().unwrap())),
         ("POST", "settings") => {
             let mut s: Settings = serde_json::from_value(v.clone()).map_err(|e| e.to_string())?;
-            if !["glass", "ascii", "flap"].contains(&s.theme.as_str()) {
+            if !["std", "glass", "ascii", "flap"].contains(&s.theme.as_str()) {
                 return Err("unbekanntes Design".into());
             }
             s.conns = s.conns.clamp(1, 32);

@@ -1,15 +1,40 @@
 {
   "manifest_version": 3,
   "name": "Speedload",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Übergibt Browser-Downloads an Speedload (mehrere Verbindungen, Fortsetzen nach Abbruch).",
-  "permissions": ["downloads"],
-  "host_permissions": ["http://127.0.0.1:7878/*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Speedload",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "downloads"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:7878/*"
+  ],
   "background": {
     "service_worker": "background.js",
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "browser_specific_settings": {
-    "gecko": { "id": "speedload@localhost", "strict_min_version": "121.0" }
+    "gecko": {
+      "id": "speedload@localhost",
+      "strict_min_version": "121.0"
+    }
   }
 }

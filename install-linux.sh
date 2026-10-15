@@ -4,7 +4,7 @@ set -e
 cd "$(dirname "$0")"
 cargo build --release
 # Erweiterung als .xpi für Firefox ESR / Mullvad Browser
-(cd extension && python3 -m zipfile -c ../speedload.xpi manifest.json background.js)
+(cd extension && python3 -m zipfile -c ../speedload.xpi manifest.json background.js popup.html popup.js icons)
 mkdir -p ~/.local/bin ~/.local/share/applications ~/.config/autostart
 install -m 755 target/release/speedload ~/.local/bin/speedload
 cat > ~/.local/share/applications/speedload.desktop <<EOF
