@@ -520,6 +520,8 @@ kbd{font:600 13px var(--font);min-width:34px;height:34px;padding:0 10px;display:
 .dl-more .dcard h3{font-size:21px}
 .dl-more .dcard .sub{margin:0}
 .links{display:flex;gap:10px;flex-wrap:wrap}
+.links.pkgs{gap:6px}
+.links.pkgs .lnk{padding:6px 11px;font:600 12.5px var(--mono)}
 .lnk{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;padding:9px 14px;border-radius:10px;border:1px solid var(--line-2);background:var(--bg);transition:border-color .2s,color .2s}
 .lnk:hover{border-color:var(--acc);color:var(--acc)}
 .lnk svg{width:15px;height:15px}
@@ -979,7 +981,7 @@ footer a:hover{color:var(--fg)}
   <div class="wrap center">
     <p class="kicker" data-reveal>Download</p>
     <h2 data-reveal>Laden. Starten.<br><span class="dim">Fertig.</span></h2>
-    <p class="lede" data-reveal>Kostenlos und quelloffen unter MIT-Lizenz. Keine Installation nötig: Datei starten, Speedload öffnet sich.</p>
+    <p class="lede" data-reveal>Kostenlos und quelloffen unter MIT-Lizenz. Unter Linux als Paket mit Menüeintrag und Autostart, oder einfach als Datei starten.</p>
   </div>
   <div class="wrap">
     <div class="dl-grid">
@@ -997,11 +999,16 @@ in shell:startup ablegen</div>
         <span class="badge">Dein System</span>
         <span class="os-ic"><svg><use href="#i-linux"/></svg></span>
         <h3>Linux</h3>
-        <p class="sub">Ubuntu, Linux Mint und andere</p>
-        <a class="btn btn-primary" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64"><svg><use href="#i-dl"/></svg>Für Linux laden</a>
-        <div class="meta"><span>x86_64 · Binary</span><span>~2 MB</span></div>
-        <div class="code"><span class="p">$ </span>chmod +x speedload-linux-x86_64
-<span class="p">$ </span>./speedload-linux-x86_64<button class="copy" type="button" data-copy="chmod +x speedload-linux-x86_64 && ./speedload-linux-x86_64" aria-label="Befehl kopieren"><svg><use href="#i-copy"/></svg></button></div>
+        <p class="sub">Ubuntu, Linux Mint, Debian, Fedora und andere</p>
+        <a class="btn btn-primary" data-lx-main href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64.deb"><svg><use href="#i-dl"/></svg><span data-lx-label>.deb laden</span></a>
+        <div class="meta"><span data-lx-meta>Ubuntu · Mint · Debian</span><span>~1 MB</span></div>
+        <div class="links pkgs">
+          <a class="lnk" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64.deb" title="Ubuntu, Linux Mint, Debian">.deb</a>
+          <a class="lnk" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64.rpm" title="Fedora, openSUSE, RHEL">.rpm</a>
+          <a class="lnk" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64.AppImage" title="Läuft auf fast jeder Distribution, ohne Installation">.AppImage</a>
+          <a class="lnk" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-linux-x86_64" title="Einzelne Datei, ohne Menüeintrag">Binary</a>
+        </div>
+        <div class="code"><span class="p">$ </span><span data-lx-cmd>sudo apt install ./speedload-linux-x86_64.deb</span><button class="copy" type="button" data-lx-copy data-copy="sudo apt install ./speedload-linux-x86_64.deb" aria-label="Befehl kopieren"><svg><use href="#i-copy"/></svg></button></div>
       </article>
       <article class="dcard off" data-os="mac" data-reveal style="--rd:.16s">
         <span class="badge">Dein System</span>
@@ -1162,10 +1169,21 @@ function detectOS() {
   return 'other';
 }
 const os = (new URLSearchParams(location.search).get('os')) || detectOS();
+// Linux-Paket: Browser verraten die Distribution kaum; Fedora/SUSE-Firefox schon. Sonst .deb (Ubuntu, Mint).
+const LPKG = /Fedora|Red Hat|CentOS|SUSE/i.test(navigator.userAgent)
+  ? { ext: 'rpm', label: '.rpm laden', meta: '.rpm · Fedora, openSUSE', cmd: 'sudo dnf install ./speedload-linux-x86_64.rpm' }
+  : { ext: 'deb', label: '.deb laden', meta: '.deb · Ubuntu, Mint, Debian', cmd: 'sudo apt install ./speedload-linux-x86_64.deb' };
+if (LPKG.ext === 'rpm') {
+  $('[data-lx-main]').href = REL + 'speedload-linux-x86_64.rpm';
+  $('[data-lx-label]').textContent = LPKG.label;
+  $('[data-lx-meta]').textContent = 'Fedora · openSUSE · RHEL';
+  $('[data-lx-cmd]').textContent = LPKG.cmd;
+  $('[data-lx-copy]').dataset.copy = LPKG.cmd;
+}
 const DL = {
   windows: { href: REL + 'speedload-windows-x86_64.exe', label: 'Für Windows laden', meta: 'speedload.exe · ca. 2 MB', icon: 'i-win', nav: 'Für Windows laden',
              alt: 'Auch für <a href="#download">Linux</a> · <span class="off">macOS</span> kommt bald' },
-  linux:   { href: REL + 'speedload-linux-x86_64', label: 'Für Linux laden', meta: 'x86_64 · ca. 2 MB', icon: 'i-linux', nav: 'Für Linux laden',
+  linux:   { href: REL + 'speedload-linux-x86_64.' + LPKG.ext, label: 'Für Linux laden', meta: LPKG.meta, icon: 'i-linux', nav: 'Für Linux laden',
              alt: 'Auch für <a href="#download">Windows</a> · <span class="off">macOS</span> kommt bald' },
   mac:     { href: null, label: 'macOS kommt bald', meta: 'Für Windows und Linux schon da', icon: 'i-mac', nav: 'macOS: bald',
              alt: 'Schon da für <a href="#download">Windows</a> und <a href="#download">Linux</a>' },

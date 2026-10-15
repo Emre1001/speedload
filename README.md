@@ -72,6 +72,18 @@ Bedienhilfen: Link per <kbd>Strg</kbd>+<kbd>V</kbd> irgendwo einfügen oder ins 
 
 Unter [Releases](../../releases) gibt es Programme für Linux und Windows sowie die Browser-Erweiterung. <sub><s>macOS (Intel und Apple Silicon): folgt später.</s></sub>
 
+| Datei | Für | Installieren |
+|---|---|---|
+| `speedload-linux-x86_64.deb` | Ubuntu, Linux Mint, Debian | `sudo apt install ./speedload-linux-x86_64.deb` |
+| `speedload-linux-x86_64.rpm` | Fedora, openSUSE, RHEL | `sudo dnf install ./speedload-linux-x86_64.rpm` |
+| `speedload-linux-x86_64.AppImage` | fast jede Distribution | `chmod +x` und starten, keine Installation |
+| `speedload-linux-x86_64` | einzelne Datei | `chmod +x` und starten |
+| `speedload-windows-x86_64.exe` | Windows 10 und 11 | starten |
+
+`.deb` und `.rpm` legen einen Menüeintrag an und starten Speedload beim Anmelden unsichtbar im Hintergrund, damit die Browser-Erweiterung Downloads übergeben kann. Abschalten geht in den Startprogrammen des Systems.
+
+Die Linux-Programme werden auf Ubuntu 22.04 gebaut und brauchen glibc 2.35 oder neuer.
+
 ### Selbst bauen
 
 Du brauchst [Rust](https://rustup.rs). Dann:
@@ -84,7 +96,7 @@ cargo build --release
 
 Ergebnis: `target/release/speedload` (Windows: `speedload.exe`).
 
-### Linux (Ubuntu, Linux Mint, andere)
+### Linux aus dem Quellcode
 
 ```bash
 ./install-linux.sh

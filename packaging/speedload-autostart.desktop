@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Speedload
+Comment=Startet Speedload unsichtbar, damit Browser-Downloads übernommen werden
+Exec=speedload --hidden
+Icon=speedload
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

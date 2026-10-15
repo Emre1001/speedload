@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Speedload
+GenericName=Download-Manager
+Comment=Lädt Dateien über mehrere Verbindungen und setzt nach Abbruch fort
+Exec=speedload
+Icon=speedload
+Terminal=false
+Categories=Network;FileTransfer;
+Keywords=download;downloader;manager;

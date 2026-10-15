@@ -1,0 +1,28 @@
+# Paketbeschreibung für .deb und .rpm (nfpm). VERSION kommt aus Cargo.toml, siehe build-linux-packages.sh.
+name: speedload
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: net
+priority: optional
+maintainer: Emre1001 <193755902+Emre1001@users.noreply.github.com>
+description: |
+  Schneller, leichter Download-Manager.
+  Lädt jede Datei über mehrere Verbindungen gleichzeitig und setzt nach
+  Netz- oder Stromausfall fort. Oberfläche im Browser-Fenster.
+homepage: https://github.com/Emre1001/speedload
+license: MIT
+contents:
+  - src: ./packaging/build/speedload
+    dst: /usr/bin/speedload
+    file_info:
+      mode: 0755
+  - src: ./packaging/speedload.desktop
+    dst: /usr/share/applications/speedload.desktop
+  - src: ./packaging/speedload-autostart.desktop
+    dst: /etc/xdg/autostart/speedload.desktop
+    type: config
+  - src: ./packaging/speedload.png
+    dst: /usr/share/icons/hicolor/256x256/apps/speedload.png
+  - src: ./LICENSE
+    dst: /usr/share/doc/speedload/LICENSE
