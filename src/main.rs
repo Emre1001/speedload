@@ -14,7 +14,19 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const ADDR: &str = "127.0.0.1:7878";
+const REPO: &str = "Emre1001/speedload";
 const UI: &str = include_str!("../ui/index.html");
+/// Eingebaute Kopie der Browser-Erweiterung: als .xpi für Firefox/Mullvad, als Ordner für Chrome.
+const EXT: &[(&str, &[u8])] = &[
+    ("manifest.json", include_bytes!("../extension/manifest.json")),
+    ("background.js", include_bytes!("../extension/background.js")),
+    ("popup.html", include_bytes!("../extension/popup.html")),
+    ("popup.js", include_bytes!("../extension/popup.js")),
+    ("icons/icon16.png", include_bytes!("../extension/icons/icon16.png")),
+    ("icons/icon32.png", include_bytes!("../extension/icons/icon32.png")),
+    ("icons/icon48.png", include_bytes!("../extension/icons/icon48.png")),
+    ("icons/icon128.png", include_bytes!("../extension/icons/icon128.png")),
+];
 const MIN_SPLIT: u64 = 1 << 20; // Reste unter 1 MiB nicht weiter aufteilen
 const UNKNOWN: u64 = u64::MAX;
 
@@ -42,7 +54,6 @@ struct Meta {
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
 struct Settings {
-    theme: String,
     conns: usize,
     dir: PathBuf,
     max_active: usize,  // gleichzeitige Downloads, Rest wartet in der Warteschlange
@@ -51,11 +62,12 @@ struct Settings {
     capture: bool,      // Browser-Downloads übernehmen
     min_size_mb: u64,   // kleinere Browser-Downloads dem Browser lassen
     ui: Value,          // reine Oberflächen-Einstellungen, vom Server nur gespeichert
+    exts: Vec<String>,  // Browser, deren Erweiterung sich gemeldet hat: "firefox", "chrome"
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { theme: "std".into(), conns: 8, dir: download_dir(), max_active: 3, limit_kbps: 0, autoresume: true, capture: true, min_size_mb: 0, ui: json!({}) }
+        Settings { conns: 8, dir: download_dir(), max_active: 3, limit_kbps: 0, autoresume: true, capture: true, min_size_mb: 0, ui: json!({}), exts: vec![] }
     }
 }
 
@@ -87,10 +99,22 @@ struct App {
     quitting: AtomicBool,
     sched: Mutex<()>,           // Warteschlange: nur ein Thread entscheidet gleichzeitig
     next_free: Mutex<Instant>,  // Tempolimit: frühester Zeitpunkt für die nächsten Bytes
+    upd: Mutex<Value>,          // Update-Stand für die UI: state, done, total, err
 }
 
 fn main() {
-    let Ok(server) = tiny_http::Server::http(ADDR) else {
+    let mut server = tiny_http::Server::http(ADDR);
+    if std::env::args().any(|a| a == "--restart") {
+        // Nach einem Update: alte Version gibt den Port gerade frei
+        for _ in 0..50 {
+            if server.is_ok() {
+                break;
+            }
+            thread::sleep(Duration::from_millis(100));
+            server = tiny_http::Server::http(ADDR);
+        }
+    }
+    let Ok(server) = server else {
         open_ui(); // läuft schon: nur Fenster öffnen
         return;
     };
@@ -123,7 +147,14 @@ fn new_app(data: PathBuf) -> Arc<App> {
         quitting: AtomicBool::new(false),
         sched: Mutex::new(()),
         next_free: Mutex::new(Instant::now()),
+        upd: Mutex::new(json!({ "state": "" })),
     });
+    // Reste eines früheren Updates wegräumen: Installer-Dateien nie behalten
+    let _ = fs::remove_dir_all(app.data.join("update"));
+    if let Some((_, target, _)) = update_plan() {
+        let _ = fs::remove_file(target.with_extension("old.exe"));
+        let _ = fs::remove_file(target.with_extension("new"));
+    }
     let mut metas: Vec<Meta> = fs::read_dir(app.data.join("jobs"))
         .into_iter()
         .flatten()
@@ -545,24 +576,33 @@ fn handle(app: &Arc<App>, mut rq: tiny_http::Request) {
     let origin_ok = hdr("Origin").is_none_or(|o| {
         o == format!("http://{ADDR}") || o == "http://localhost:7878" || ["chrome-extension://", "moz-extension://", "extension://"].iter().any(|p| o.starts_with(p))
     });
-    let (code, ctype, body) = if !host_ok || !origin_ok {
-        (403, "text/plain", "verboten".to_string())
+    let ext = hdr("Origin").and_then(|o| if o.starts_with("moz-extension://") { Some("firefox") } else if o.starts_with("chrome-extension://") { Some("chrome") } else { None });
+    let (code, ctype, body): (u16, &str, Vec<u8>) = if !host_ok || !origin_ok {
+        (403, "text/plain", "verboten".into())
     } else {
+        if let Some(e) = ext {
+            let mut cfg = app.cfg.lock().unwrap();
+            if !cfg.exts.iter().any(|x| x == e) {
+                cfg.exts.push(e.into()); // Einrichtungs-Assistent der UI wartet darauf
+                save_cfg(app, &cfg);
+            }
+        }
         let mut raw = String::new();
         let _ = rq.as_reader().take(1 << 20).read_to_string(&mut raw);
         let v: Value = serde_json::from_str(&raw).unwrap_or_default();
         let url = rq.url().split('?').next().unwrap_or("").to_string();
         match (rq.method().as_str(), url.as_str()) {
-            ("GET", "/") => (200, "text/html; charset=utf-8", UI.to_string()),
+            ("GET", "/") => (200, "text/html; charset=utf-8", UI.into()),
+            ("GET", "/speedload.xpi") => (200, "application/x-xpinstall", xpi()),
             (m, p) if p.starts_with("/api/") => match api(app, m, &p[5..], &v) {
-                Ok(v) => (200, "application/json", v.to_string()),
-                Err(e) => (400, "application/json", json!({ "error": e }).to_string()),
+                Ok(v) => (200, "application/json", v.to_string().into()),
+                Err(e) => (400, "application/json", json!({ "error": e }).to_string().into()),
             },
             _ => (404, "text/plain", "nicht gefunden".into()),
         }
     };
     let h = tiny_http::Header::from_bytes("Content-Type", ctype).unwrap();
-    let _ = rq.respond(tiny_http::Response::from_string(body).with_status_code(code).with_header(h));
+    let _ = rq.respond(tiny_http::Response::from_data(body).with_status_code(code).with_header(h));
 }
 
 fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, String> {
@@ -575,13 +615,11 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
         ("GET", "settings") => Ok(json!(*app.cfg.lock().unwrap())),
         ("POST", "settings") => {
             let mut s: Settings = serde_json::from_value(v.clone()).map_err(|e| e.to_string())?;
-            if !["std", "glass", "ascii", "flap"].contains(&s.theme.as_str()) {
-                return Err("unbekanntes Design".into());
-            }
+            s.exts = app.cfg.lock().unwrap().exts.clone(); // meldet nur die Erweiterung, nie die UI
             s.conns = s.conns.clamp(1, 32);
             s.max_active = s.max_active.clamp(1, 20);
             fs::create_dir_all(&s.dir).map_err(|e| format!("Ordner: {e}"))?;
-            let _ = fs::write(app.data.join("settings.json"), serde_json::to_vec(&s).unwrap());
+            save_cfg(app, &s);
             *app.cfg.lock().unwrap() = s;
             schedule(app); // mehr Plätze frei? Warteschlange nachziehen
             Ok(json!({ "ok": true }))
@@ -659,23 +697,50 @@ fn api(app: &Arc<App>, method: &str, path: &str, v: &Value) -> Result<Value, Str
             }
             Ok(json!({ "ok": true }))
         }
+        ("POST", "hello") => Ok(json!({ "ok": true })), // Erweiterung meldet sich, siehe handle()
+        ("POST", "browser") => {
+            let b = v["b"].as_str().unwrap_or("");
+            Ok(json!({ "ok": open_in(b, &format!("http://{ADDR}/speedload.xpi")) }))
+        }
+        ("POST", "extdir") => {
+            // Für Chrome & Co.: Erweiterung als Ordner ablegen, dort "Entpackte Erweiterung laden"
+            let dir = app.data.join("extension");
+            for (name, data) in EXT {
+                let p = dir.join(name);
+                fs::create_dir_all(p.parent().unwrap()).and_then(|_| fs::write(&p, data)).map_err(|e| format!("Ordner: {e}"))?;
+            }
+            if v["open"] == true {
+                opener(&dir.to_string_lossy());
+            }
+            Ok(json!({ "dir": dir }))
+        }
         ("POST", "open") => {
             opener(&job()?.inner.lock().unwrap().meta.dir.to_string_lossy());
             Ok(json!({ "ok": true }))
         }
         ("POST", "quit") => {
-            app.quitting.store(true, Relaxed);
-            let jobs = app.jobs.lock().unwrap().clone();
-            jobs.iter().for_each(|j| j.f.stop.store(true, Relaxed));
-            thread::spawn(move || {
-                for _ in 0..50 {
-                    if jobs.iter().all(|j| !j.f.running.load(Relaxed)) {
-                        break;
+            shutdown(app, None);
+            Ok(json!({ "ok": true }))
+        }
+        ("GET", "update") => {
+            let r = latest_release(app)?;
+            let tag = r["tag_name"].as_str().unwrap_or("").trim_start_matches('v');
+            let cur = env!("CARGO_PKG_VERSION");
+            let how = update_plan().map_or("none", |(_, _, pkg)| if pkg { "package" } else { "self" });
+            Ok(json!({ "current": cur, "latest": tag, "newer": version(tag) > version(cur), "notes": r["body"], "page": r["html_url"], "how": how }))
+        }
+        ("GET", "update/status") => Ok(app.upd.lock().unwrap().clone()),
+        ("POST", "update/install") => {
+            let busy = ["download", "restart"].contains(&app.upd.lock().unwrap()["state"].as_str().unwrap_or(""));
+            if !busy {
+                *app.upd.lock().unwrap() = json!({ "state": "download", "done": 0, "total": 0 });
+                let app = app.clone();
+                thread::spawn(move || {
+                    if let Err(e) = install_update(&app) {
+                        *app.upd.lock().unwrap() = json!({ "state": "error", "err": e });
                     }
-                    thread::sleep(Duration::from_millis(100));
-                }
-                std::process::exit(0);
-            });
+                });
+            }
             Ok(json!({ "ok": true }))
         }
         _ => Err("unbekannter Befehl".into()),
@@ -747,6 +812,183 @@ fn opener(target: &str) {
     let _ = cmd(prog).arg(target).spawn();
 }
 
+/// Downloads anhalten (Stand wird gesichert), dann beenden oder die neue Version starten.
+fn shutdown(app: &Arc<App>, restart: Option<PathBuf>) {
+    app.quitting.store(true, Relaxed);
+    let jobs = app.jobs.lock().unwrap().clone();
+    jobs.iter().for_each(|j| j.f.stop.store(true, Relaxed));
+    thread::spawn(move || {
+        for _ in 0..50 {
+            if jobs.iter().all(|j| !j.f.running.load(Relaxed)) {
+                break;
+            }
+            thread::sleep(Duration::from_millis(100));
+        }
+        if let Some(p) = restart {
+            let _ = cmd(&p.to_string_lossy()).args(["--hidden", "--restart"]).spawn();
+        }
+        std::process::exit(0);
+    });
+}
+
+fn latest_release(app: &App) -> Result<Value, String> {
+    app.agent
+        .get(&format!("https://api.github.com/repos/{REPO}/releases/latest"))
+        .set("Accept", "application/vnd.github+json")
+        .call()
+        .map_err(|e| format!("GitHub: {e}"))?
+        .into_string()
+        .map_err(|e| e.to_string())
+        .and_then(|t| serde_json::from_str(&t).map_err(|e| e.to_string()))
+}
+
+/// "0.4.1" -> [0, 4, 1], damit 0.10 > 0.9 richtig verglichen wird
+fn version(v: &str) -> Vec<u64> {
+    v.split('.').map(|x| x.trim_matches(|c: char| !c.is_ascii_digit()).parse().unwrap_or(0)).collect()
+}
+
+/// Welche Release-Datei passt und wohin sie gehört. `true` = Systempaket, das der Paketmanager installiert.
+fn update_plan() -> Option<(&'static str, PathBuf, bool)> {
+    if !cfg!(target_arch = "x86_64") {
+        return None;
+    }
+    let exe = std::env::current_exe().ok()?;
+    if cfg!(windows) {
+        return Some(("speedload-windows-x86_64.exe", exe, false));
+    }
+    if !cfg!(target_os = "linux") {
+        return None;
+    }
+    if let Some(img) = std::env::var_os("APPIMAGE") {
+        return Some(("speedload-linux-x86_64.AppImage", img.into(), false));
+    }
+    if exe.starts_with("/usr") {
+        // .deb/.rpm-Installation: nur der Paketmanager darf dort schreiben
+        let name = if Path::new("/usr/bin/dpkg").exists() { "speedload-linux-x86_64.deb" } else { "speedload-linux-x86_64.rpm" };
+        return Some((name, exe, true));
+    }
+    Some(("speedload-linux-x86_64", exe, false))
+}
+
+fn install_update(app: &Arc<App>) -> Result<(), String> {
+    let (name, target, pkg) = update_plan().ok_or("Für dieses System gibt es kein automatisches Update")?;
+    let rel = latest_release(app)?;
+    let asset = rel["assets"].as_array().into_iter().flatten().find(|a| a["name"] == name).ok_or(format!("{name} fehlt im Release"))?;
+    let url = asset["browser_download_url"].as_str().unwrap_or("");
+    if !url.starts_with(&format!("https://github.com/{REPO}/releases/download/")) {
+        return Err("Unerwartete Download-Adresse".into());
+    }
+    let size = asset["size"].as_u64().unwrap_or(0);
+    app.upd.lock().unwrap()["total"] = json!(size);
+    let mut body = app.agent.get(url).call().map_err(|e| format!("Download: {e}"))?.into_reader();
+    let (mut data, mut buf) = (Vec::with_capacity(size as usize), vec![0u8; 1 << 16]);
+    loop {
+        let n = body.read(&mut buf).map_err(|e| format!("Download: {e}"))?;
+        if n == 0 {
+            break;
+        }
+        data.extend_from_slice(&buf[..n]);
+        app.upd.lock().unwrap()["done"] = json!(data.len());
+    }
+    if size > 0 && data.len() as u64 != size {
+        return Err("Download unvollständig".into());
+    }
+    if pkg {
+        // Paket dem System-Installer übergeben; die Datei räumt der nächste Start weg
+        let dir = app.data.join("update");
+        let file = dir.join(name);
+        fs::create_dir_all(&dir).and_then(|_| fs::write(&file, &data)).map_err(|e| e.to_string())?;
+        opener(&file.to_string_lossy());
+        *app.upd.lock().unwrap() = json!({ "state": "handoff" });
+        return Ok(());
+    }
+    let new = target.with_extension("new");
+    let written = fs::write(&new, &data).and_then(|_| {
+        #[cfg(unix)]
+        fs::set_permissions(&new, std::os::unix::fs::PermissionsExt::from_mode(0o755))?;
+        if cfg!(windows) {
+            fs::rename(&target, target.with_extension("old.exe"))?; // laufende .exe darf umbenannt, nicht überschrieben werden
+        }
+        fs::rename(&new, &target)
+    });
+    if let Err(e) = written {
+        let _ = fs::remove_file(&new);
+        return Err(format!("Keine Schreibrechte für {}: {e}", target.display()));
+    }
+    *app.upd.lock().unwrap() = json!({ "state": "restart" });
+    shutdown(app, Some(target));
+    Ok(())
+}
+
+fn save_cfg(app: &App, s: &Settings) {
+    let _ = fs::write(app.data.join("settings.json"), serde_json::to_vec(s).unwrap());
+}
+
+/// Startet Firefox oder Mullvad Browser mit `url`. false = Browser nicht gefunden.
+fn open_in(b: &str, url: &str) -> bool {
+    let local = std::env::var("LOCALAPPDATA").unwrap_or_default();
+    let mullvad_win = format!(r"{local}\Mullvad\MullvadBrowser\Release\mullvadbrowser.exe");
+    let (bins, flatpak, mac) = match b {
+        "mullvad" => (vec!["mullvad-browser", "start-mullvad-browser", &mullvad_win], "net.mullvad.MullvadBrowser", "Mullvad Browser"),
+        "firefox" => (
+            vec!["firefox", "firefox-esr", "firefox-developer-edition", "firefox-nightly", r"C:\Program Files\Mozilla Firefox\firefox.exe", r"C:\Program Files\Firefox Developer Edition\firefox.exe"],
+            "org.mozilla.firefox",
+            "Firefox",
+        ),
+        _ => return false,
+    };
+    if cfg!(target_os = "macos") {
+        return cmd("open").args(["-a", mac, url]).status().is_ok_and(|s| s.success());
+    }
+    if bins.iter().any(|p| cmd(p).arg(url).spawn().is_ok()) {
+        return true;
+    }
+    cfg!(target_os = "linux")
+        && cmd("flatpak").args(["info", flatpak]).output().is_ok_and(|o| o.status.success())
+        && cmd("flatpak").args(["run", flatpak, url]).spawn().is_ok()
+}
+
+/// Erweiterung als .xpi: ZIP ohne Kompression, direkt aus `EXT`.
+fn xpi() -> Vec<u8> {
+    fn crc32(d: &[u8]) -> u32 {
+        let mut c = !0u32;
+        for &b in d {
+            c ^= b as u32;
+            for _ in 0..8 {
+                c = if c & 1 != 0 { (c >> 1) ^ 0xEDB8_8320 } else { c >> 1 };
+            }
+        }
+        !c
+    }
+    let (mut out, mut cd) = (Vec::new(), Vec::new());
+    for (name, data) in EXT {
+        let (crc, len, off) = (crc32(data), data.len() as u32, out.len() as u32);
+        // Version 2.0, keine Flags, "stored", Datum 1980-01-01
+        let head = [&20u16.to_le_bytes()[..], &0u16.to_le_bytes(), &0u16.to_le_bytes(), &0u16.to_le_bytes(), &33u16.to_le_bytes(),
+            &crc.to_le_bytes(), &len.to_le_bytes(), &len.to_le_bytes(), &(name.len() as u16).to_le_bytes(), &0u16.to_le_bytes()].concat();
+        out.extend(0x0403_4b50u32.to_le_bytes());
+        out.extend(&head);
+        out.extend(name.as_bytes());
+        out.extend(*data);
+        cd.extend(0x0201_4b50u32.to_le_bytes());
+        cd.extend(20u16.to_le_bytes());
+        cd.extend(&head);
+        cd.extend([0u8; 10]); // Kommentar, Disk, Attribute
+        cd.extend(off.to_le_bytes());
+        cd.extend(name.as_bytes());
+    }
+    let (n, size, off) = (EXT.len() as u16, cd.len() as u32, out.len() as u32);
+    out.extend(cd);
+    out.extend(0x0605_4b50u32.to_le_bytes());
+    out.extend([0u8; 4]);
+    out.extend(n.to_le_bytes());
+    out.extend(n.to_le_bytes());
+    out.extend(size.to_le_bytes());
+    out.extend(off.to_le_bytes());
+    out.extend([0u8; 2]);
+    out
+}
+
 /// Öffnet die UI als eigenes App-Fenster (Chromium --app), sonst im Standardbrowser.
 fn open_ui() {
     let url = format!("http://{ADDR}/");
@@ -774,6 +1016,21 @@ fn open_ui() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn versions() {
+        assert!(version("0.10.0") > version("0.9.3"));
+        assert!(version("v0.4.1") > version("0.4.0"));
+        assert!(version("0.4.0") <= version("0.4.0"));
+    }
+
+    #[test]
+    fn xpi_is_zip() {
+        let z = xpi();
+        assert_eq!(&z[..4], b"PK\x03\x04");
+        assert_eq!(&z[z.len() - 22..z.len() - 18], b"PK\x05\x06");
+        assert_eq!(u16::from_le_bytes([z[z.len() - 12], z[z.len() - 11]]) as usize, EXT.len());
+    }
 
     #[test]
     fn names() {

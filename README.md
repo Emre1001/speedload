@@ -9,7 +9,7 @@
 
 **Schneller Download-Manager. Eine Datei, 2 MB, kein Ballast.**
 
-Mehrere Verbindungen pro Download · setzt nach Abbruch fort · drei Designs
+Mehrere Verbindungen pro Download · setzt nach Abbruch fort · Browser-Übernahme in einer Minute eingerichtet
 
 **[Website & Download](https://emre1001.github.io/speedload/)**
 
@@ -36,33 +36,24 @@ Fällt das WLAN aus, geht der Strom weg oder stürzt etwas ab, ist nichts verlor
 | **Fortsetzen** | Netz weg: automatischer Neuversuch mit Pausen bis 30 s. Strom weg oder Absturz: Weiter beim nächsten Start. |
 | **Sicher gespeichert** | Fortschritt wird jede Sekunde gesichert, erst die Daten, dann der Stand. Nach einem Stromausfall steht nie Fortschritt ohne Daten da. |
 | **Leicht** | Eine Datei, ca. 2 MB, keine Laufzeit, kein Electron, kein Webview. |
-| **4 Designs** | **Standard** (schlicht wie eine System-App, voreingestellt), **Glassmorphism**, **ASCII-Art**, **Split-Flap**. Jedes in Hell und Dunkel, folgt auf Wunsch dem System. Akzentfarbe wählbar. |
-| **Flüssig** | Weich mitlaufende Zahlen und Balken, Segment-Ansicht pro Verbindung, Tempo-Graph, animierte Übergänge. Animationen abschaltbar. |
+| **Eine ruhige Oberfläche** | Schlicht wie eine System-App. Hell und Dunkel (folgt auf Wunsch dem System), sieben Akzentfarben, Deutsch, English und Türkçe. |
+| **Flüssig** | Weich mitlaufende Zahlen und Balken, Tempo-Graph, animierte Übergänge. Animationen abschaltbar. |
 | **Warteschlange** | Bestimmt, wie viele Downloads gleichzeitig laufen. Der Rest wartet und startet automatisch. |
 | **Tempolimit** | Gesamtgeschwindigkeit begrenzen, damit für anderes noch Leitung übrig bleibt. |
-| **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. Klick aufs Symbol zeigt die Downloads in einem kleinen Fenster, mit Pause, Fortsetzen und Öffnen. |
+| **Browser-Übernahme** | Erweiterung für Chrome, Edge, Brave, Firefox und Mullvad Browser übernimmt Downloads automatisch. Speedload bringt sie selbst mit, ein Assistent in der App richtet sie ein. Klick aufs Symbol zeigt die Downloads in einem kleinen Fenster. |
 | **Überall** | Linux (Ubuntu, Linux Mint und andere) und Windows. <sub>macOS: <s>folgt später</s></sub> |
-| **Privat** | Hört nur auf `127.0.0.1`. Keine Telemetrie, keine Konten, kein Netzwerkzugriff außer deinen Downloads. |
-
-## Designs
-
-Umschalten unter ⚙ Einstellungen:
-
-- **Standard**: ruhig und aufgeräumt wie eine normale Desktop-App. Eine Liste, ein Fortschrittsbalken, Systemschrift.
-- **Glassmorphism**: Milchglas-Karten über animiertem Farbverlauf.
-- **ASCII-Art**: Terminal-Look in Grün auf Schwarz, Fortschrittsbalken als `[#####==.....]`.
-- **Split-Flap**: Klapptafel wie am Bahnhof, jede Ziffer klappt einzeln um.
-
-Farbschema: System, Hell oder Dunkel. Dazu sieben Akzentfarben.
+| **Updates in der App** | Fragt beim Start und alle 6 Stunden bei GitHub nach neuen Versionen. Installieren, Später oder Überspringen. Lädt die neue Version selbst und startet neu, `.deb`/`.rpm` übergibt es dem Installer des Systems. Abschaltbar. |
+| **Privat** | Hört nur auf `127.0.0.1`. Keine Telemetrie, keine Konten. Netzwerkzugriff nur für deine Downloads und die Update-Abfrage bei GitHub (abschaltbar). |
 
 ## Einstellungen
 
 | Bereich | Einstellung |
 |---|---|
-| Darstellung | Design, Farbschema, Akzentfarbe, Animationen (System/Voll/Wenig/Aus), kompakte Liste, Tempo-Graph |
+| Darstellung | Farbschema (System/Hell/Dunkel), Sprache (Deutsch, English, Türkçe), Akzentfarbe, Animationen (System/An/Aus), kompakte Liste |
 | Downloads | Speicherort, Verbindungen pro Download (1–32), gleichzeitige Downloads (1–10), Tempolimit, beim Start fortsetzen |
-| Browser | Übernahme an/aus, Mindestgröße für übernommene Dateien |
+| Browser | Erweiterung einrichten (Assistent), Übernahme an/aus, Mindestgröße für übernommene Dateien |
 | Benachrichtigungen | Desktop-Meldung, Ton bei Fertig |
+| Updates | Version, Nach Updates suchen, automatisch suchen an/aus |
 
 Bedienhilfen: Link per <kbd>Strg</kbd>+<kbd>V</kbd> irgendwo einfügen oder ins Fenster ziehen, <kbd>/</kbd> springt ins Link-Feld, <kbd>Strg</kbd>+<kbd>,</kbd> öffnet die Einstellungen. Mehrere Links auf einmal gehen auch.
 
@@ -116,20 +107,20 @@ Installiert nach `~/.local/bin`, legt einen Menüeintrag an und startet Speedloa
 
 Speedload funktioniert auch ohne Erweiterung: Link in das Feld einfügen, fertig. Mit Erweiterung übernimmt es jeden Browser-Download selbst. Läuft Speedload nicht, lädt der Browser ganz normal weiter.
 
+**Am einfachsten:** In Speedload auf **Einrichten** klicken (Hinweis über der Liste oder ⚙ Einstellungen → Browser). Der Assistent führt durch die Schritte, hat für jede Adresse einen Kopieren-Knopf und meldet „verbunden“, sobald die Erweiterung läuft. Die Erweiterung steckt in Speedload selbst, nichts extra herunterladen.
+
+**Firefox und Mullvad Browser**
+
+1. `about:config` → `xpinstall.signatures.required` auf `false`. Geht nur in Mullvad Browser, Firefox ESR, Developer Edition und Nightly. Normales Firefox lässt unsignierte Add-ons nicht dauerhaft zu (dort nur `about:debugging` → „Temporäres Add-on laden“).
+2. Im Assistenten **In Firefox öffnen** bzw. **In Mullvad Browser öffnen**. Der Browser öffnet `http://127.0.0.1:7878/speedload.xpi` und fragt „Hinzufügen?“. Wird der Browser nicht gefunden: den Link selbst in die Adressleiste einfügen.
+3. Nur Mullvad Browser: `about:addons` → Speedload → „In privaten Fenstern ausführen“ auf **Erlauben**. Pflicht, weil Mullvad Browser immer privat läuft.
+
 **Chrome, Edge, Brave**
 
-`chrome://extensions` → Entwicklermodus → „Entpackte Erweiterung laden“ → Ordner `extension`.
+1. `chrome://extensions` (Edge: `edge://extensions`, Brave: `brave://extensions`) → Entwicklermodus an.
+2. „Entpackte Erweiterung laden“ → den Ordner wählen, den der Assistent anzeigt (`<Datenordner>/extension`, siehe unten).
 
-**Firefox**
-
-`about:debugging` → „Dieser Firefox“ → „Temporäres Add-on laden“ → `extension/manifest.json`. Dauerhaft geht das nur mit Firefox Developer Edition oder ESR (siehe Mullvad).
-
-**Mullvad Browser** (dauerhaft)
-
-1. `speedload.xpi` erzeugen: `./install-linux.sh` oder `cd extension && python3 -m zipfile -c ../speedload.xpi manifest.json background.js popup.html popup.js icons`. Fertige `.xpi` gibt es auch bei den Releases.
-2. `about:config` → `xpinstall.signatures.required` auf `false`.
-3. `about:addons` → Zahnrad → „Add-on aus Datei installieren“ → `speedload.xpi`.
-4. Bei Speedload „In privaten Fenstern ausführen“ auf **Erlauben** stellen. Pflicht: Mullvad Browser läuft immer im privaten Modus.
+Fertige `.xpi` gibt es auch bei den Releases.
 
 > **Datenschutz-Hinweis:** Übernommene Downloads lädt Speedload selbst, nicht der Browser. Sie laufen über die normale Internetverbindung des Systems (mit Mullvad VPN: über das VPN), aber ohne den Fingerprinting-Schutz des Browsers. Speedload sendet die Kennung `Speedload/0.1`.
 
@@ -183,11 +174,11 @@ Aufbau:
 | Pfad | Inhalt |
 |---|---|
 | `src/main.rs` | Download-Engine, HTTP-API, Start |
-| `ui/index.html` | Oberfläche mit allen drei Designs, ohne Build-Schritt |
-| `extension/` | Browser-Erweiterung (Manifest V3) |
+| `ui/index.html` | Oberfläche (Deutsch, English, Türkçe), ohne Build-Schritt |
+| `extension/` | Browser-Erweiterung (Manifest V3), wird ins Programm eingebaut |
 | `docs/` | Website (GitHub Pages, eine HTML-Datei) |
 
-Die lokale API (`/api/add`, `/api/list`, `/api/pause`, `/api/resume`, `/api/remove`, `/api/settings`) akzeptiert nur Anfragen von `127.0.0.1` und Browser-Erweiterungen. Webseiten bekommen `403`.
+Die lokale API (`/api/add`, `/api/list`, `/api/pause`, `/api/resume`, `/api/remove`, `/api/settings`, `/api/hello`, `/api/browser`, `/api/extdir`) und `/speedload.xpi` akzeptiert nur Anfragen von `127.0.0.1` und Browser-Erweiterungen. Webseiten bekommen `403`.
 
 Beiträge sind willkommen: Fork, Branch, `cargo test`, Pull Request.
 

@@ -175,52 +175,12 @@ h1 .l2>span{grid-area:1/1;color:var(--acc);white-space:nowrap;
 .stage::before{content:"";position:absolute;left:10%;right:10%;top:12%;height:70%;background:radial-gradient(closest-side,var(--glow),transparent);filter:blur(40px);z-index:-1}
 .win{position:relative;border-radius:18px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);overflow:hidden;
   transform-origin:50% 0;transform:rotateX(var(--tilt,0deg)) scale(var(--sc,1));will-change:transform;text-align:left}
-.win-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
-.win-bar .brand{font-size:15px}
-.win-bar .brand-mark{width:20px;height:20px;border-radius:6px}
-.win-bar .brand-mark span{width:11px}
-.win-bar .brand-mark i{height:2px;margin:1.2px 0}
-.url{flex:1;display:flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 14px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--faint);font-size:14px;min-width:0}
-.url span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.url b{font-weight:600;font-size:13px;background:var(--fg);color:var(--bg);padding:5px 12px;border-radius:7px}
-.win-icons{display:flex;gap:8px;color:var(--muted)}
-.win-icons span{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line)}
-.win-icons svg{width:15px;height:15px}
-.win-body{display:grid;grid-template-columns:1fr 290px}
-.list{padding:10px;border-right:1px solid var(--line);min-width:0}
-.item{padding:16px;border-radius:12px;display:grid;gap:12px}
-.item+.item{margin-top:2px}
-.item.active{background:var(--bg)}
-.item-top{display:flex;align-items:center;gap:12px;min-width:0}
 .ficon{width:36px;height:36px;border-radius:9px;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center;flex:none;font:700 10px var(--mono);letter-spacing:.02em}
-.item.done .ficon{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
-.item.wait .ficon{background:var(--track);color:var(--muted)}
-.fname{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.fmeta{font-size:12.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
-.fname-w{flex:1;min-width:0;display:grid;gap:2px}
-.pct{font:700 22px var(--mono);letter-spacing:-.04em;flex:none}
-.state{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;flex:none}
-.state.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 13%,transparent)}
-.state.wait{color:var(--muted);background:var(--track)}
-.segbar{display:flex;gap:3px;height:10px}
-.seg{flex:1;border-radius:3px;background:var(--track);overflow:hidden;position:relative}
-.seg i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p,0));background:var(--acc);border-radius:inherit}
-.seg.fin i{background:color-mix(in srgb,var(--fg) 82%,transparent)}
-.seg.help i{background:linear-gradient(90deg,var(--acc),var(--acc-2));box-shadow:0 0 12px var(--glow)}
-.item.done .seg i{background:var(--ok)}
-.side{padding:22px;display:flex;flex-direction:column;gap:20px;background:var(--surface)}
-.side h4{margin:0;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.big-speed{font:700 44px/1 var(--mono);letter-spacing:-.05em;margin-top:8px}
-.big-speed small{font-size:15px;color:var(--muted);letter-spacing:0;margin-left:4px}
-.graph{width:100%;height:96px;margin-top:2px}
-.graph path.a{fill:url(#gfill)}
-.graph path.l{fill:none;stroke:var(--acc);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-.conns{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
-.conns span{height:26px;border-radius:5px;background:var(--track);position:relative;overflow:hidden}
-.conns span::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--h,0%);background:var(--acc);transition:height .25s linear;opacity:.85}
-.conns span.fin::after{background:var(--fg);height:100%;opacity:.25}
-.kv{display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:13.5px}
-.kv dt{color:var(--muted)} .kv dd{margin:0;font-family:var(--mono);font-size:13px;text-align:right}
+.shot{display:block;width:100%;height:auto}
+.shot.dark{display:none}
+:root[data-theme="dark"] .shot.light{display:none}
+:root[data-theme="dark"] .shot.dark{display:block}
+@media (prefers-color-scheme: dark){:root:not([data-theme]) .shot.light{display:none}:root:not([data-theme]) .shot.dark{display:block}}
 
 /* ───────────────────────── Sektionen ───────────────────────── */
 .sec{position:relative;padding:150px 0}
@@ -415,80 +375,32 @@ h2 .dim{color:var(--faint)}
 kbd{font:600 13px var(--font);min-width:34px;height:34px;padding:0 10px;display:inline-grid;place-items:center;border-radius:9px;background:var(--bg);border:1px solid var(--line-2);border-bottom-width:3px;color:var(--fg);animation:press 4.5s var(--ease) infinite;animation-delay:var(--kd,0s)}
 @keyframes press{0%,8%,100%{transform:none;border-bottom-width:3px;background:var(--bg)}3%,5%{transform:translateY(2px);border-bottom-width:1px;background:var(--acc-soft)}}
 
-/* Designs */
-.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:72px}
-.tcard{border-radius:24px;overflow:hidden;border:1px solid var(--line);background:var(--surface);transition:transform .6s var(--ease)}
-.tcard:hover{transform:translateY(-6px)}
-.tprev{height:300px;position:relative;overflow:hidden;display:grid;place-items:center;padding:24px}
-.tcap{padding:22px 24px 26px;border-top:1px solid var(--line)}
-.tcap h3{margin:0;font-size:20px;letter-spacing:-.025em}
-.tcap p{margin:4px 0 0;color:var(--muted);font-size:14.5px}
-/* Glas */
-.t-glass{background:#0e0c22}
-.t-glass .blob{position:absolute;width:220px;height:220px;border-radius:50%;filter:blur(50px);opacity:.65}
-.t-glass .b1{background:#ff4f9a;left:-40px;top:-30px;animation:drift1 9s ease-in-out infinite alternate}
-.t-glass .b2{background:#3ee0ff;right:-50px;bottom:-60px;animation:drift2 11s ease-in-out infinite alternate}
-.t-glass .b3{background:#7b5cff;left:40%;top:40%;animation:drift1 13s ease-in-out infinite alternate-reverse}
-@keyframes drift1{to{transform:translate(90px,60px) scale(1.2)}}
-@keyframes drift2{to{transform:translate(-80px,-50px) scale(.9)}}
-.glass{position:relative;width:100%;max-width:290px;padding:20px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);color:#f3f3ff;box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:system-ui,sans-serif}
-.glass .gn{font-size:13px;font-weight:600;opacity:.9}
-.glass .gv{font-size:34px;font-weight:700;letter-spacing:-.03em;margin:8px 0 12px;font-variant-numeric:tabular-nums}
-.glass .gv small{font-size:13px;opacity:.6;font-weight:500}
-.glass .gb{height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
-.glass .gb i{display:block;height:100%;width:var(--p,0%);background:linear-gradient(90deg,#a594ff,#4fe3ff);border-radius:inherit;transition:width .5s linear}
-.glass .gm{display:flex;justify-content:space-between;font-size:11.5px;opacity:.6;margin-top:10px}
-:root[data-theme="light"] .t-glass,:root:not([data-theme]) .t-glass{background:#eceffb}
-:root[data-theme="light"] .t-glass .b1,:root:not([data-theme]) .t-glass .b1{background:#ff9ec6}
-:root[data-theme="light"] .t-glass .b2,:root:not([data-theme]) .t-glass .b2{background:#86e3ff}
-:root[data-theme="light"] .t-glass .b3,:root:not([data-theme]) .t-glass .b3{background:#b6a2ff}
-:root[data-theme="light"] .glass,:root:not([data-theme]) .glass{background:rgba(255,255,255,.45);border-color:rgba(255,255,255,.85);color:#1b1a33;box-shadow:0 18px 50px rgba(90,80,170,.2)}
-:root[data-theme="light"] .glass .gb,:root:not([data-theme]) .glass .gb{background:rgba(40,36,90,.08)}
-:root[data-theme="light"] .glass .gb i,:root:not([data-theme]) .glass .gb i{background:linear-gradient(90deg,#6c55ff,#00a3d9)}
-/* ASCII */
-.t-ascii{background:#040a05;color:#41ff85;font:500 12.5px/1.6 "JetBrains Mono",ui-monospace,monospace;place-items:stretch;text-shadow:0 0 6px rgba(65,255,133,.45)}
-.t-ascii pre{margin:0;font:inherit;white-space:pre;overflow:hidden;align-self:center}
-.t-ascii .cur{animation:blink 1s steps(2) infinite}
-.t-ascii .dim{color:#28a656}
-:root[data-theme="light"] .t-ascii,:root:not([data-theme]) .t-ascii{background:#f4f0e3;color:#17532a;text-shadow:none}
-:root[data-theme="light"] .t-ascii .dim,:root:not([data-theme]) .t-ascii .dim{color:#5b7c5f}
-/* Split-Flap */
-.t-flap{background:#0b0b0b;color:#f1f0e8;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
-.flapbox{display:grid;gap:14px;justify-items:center}
-.flaplbl{font-size:10.5px;font-weight:700;letter-spacing:.2em;color:#8a897f;text-transform:uppercase}
-.flaps{display:flex;gap:5px}
-.ft{--fbg:#1c1c1c;--ffg:#ffcc00;position:relative;width:42px;height:62px;border-radius:5px;background:var(--fbg);color:var(--ffg);font:700 42px/62px "Helvetica Neue",Helvetica,Arial,sans-serif;text-align:center;box-shadow:0 3px 0 #000;perspective:200px}
-.ft.sm{width:30px;height:44px;font-size:28px;line-height:44px}
-.ft .h{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:var(--fbg);backface-visibility:hidden}
-.ft .h.u{top:0;border-radius:5px 5px 0 0}
-.ft .h.d{bottom:0;border-radius:0 0 5px 5px}
-.ft .h b{position:absolute;left:0;right:0;height:200%;font-weight:700}
-.ft .h.u b{top:0}.ft .h.d b{bottom:0}
-.ft::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.6);z-index:5}
-.ft .h.fu{transform-origin:bottom;animation:fu .16s ease-in forwards;z-index:3}
-.ft .h.fd{transform-origin:top;transform:rotateX(90deg);animation:fd .16s ease-out .16s forwards;z-index:3}
-@keyframes fu{to{transform:rotateX(-90deg)}}
-@keyframes fd{to{transform:rotateX(0)}}
-:root[data-theme="light"] .t-flap,:root:not([data-theme]) .t-flap{background:#e7e3d7}
-:root[data-theme="light"] .ft,:root:not([data-theme]) .ft{--fbg:#1d1c19;box-shadow:0 3px 0 #b5ad9a}
-:root[data-theme="light"] .flaplbl,:root:not([data-theme]) .flaplbl{color:#6e6b61}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme]) .t-glass{background:#0e0c22}
-  :root:not([data-theme]) .t-glass .b1{background:#ff4f9a}
-  :root:not([data-theme]) .t-glass .b2{background:#3ee0ff}
-  :root:not([data-theme]) .t-glass .b3{background:#7b5cff}
-  :root:not([data-theme]) .glass{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#f3f3ff;box-shadow:0 18px 50px rgba(0,0,0,.35)}
-  :root:not([data-theme]) .glass .gb{background:rgba(255,255,255,.12)}
-  :root:not([data-theme]) .glass .gb i{background:linear-gradient(90deg,#a594ff,#4fe3ff)}
-  :root:not([data-theme]) .t-ascii{background:#040a05;color:#41ff85;text-shadow:0 0 6px rgba(65,255,133,.45)}
-  :root:not([data-theme]) .t-ascii .dim{color:#28a656}
-  :root:not([data-theme]) .t-flap{background:#0b0b0b}
-  :root:not([data-theme]) .ft{--fbg:#1c1c1c;box-shadow:0 3px 0 #000}
-  :root:not([data-theme]) .flaplbl{color:#8a897f}
-}
-.accents{display:flex;justify-content:center;gap:10px;margin-top:36px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:14px}
-.accents i{width:16px;height:16px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px var(--bg),0 0 0 4px var(--line-2);transition:transform .3s var(--ease)}
-.accents i:hover{transform:scale(1.25)}
+/* Erweiterung einrichten */
+.setup{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:56px;align-items:center;margin-top:20px}
+.setup ul{list-style:none;margin:32px 0 0;padding:0;display:grid;gap:14px}
+.setup ul li{display:flex;gap:12px;color:var(--muted);font-size:16px}
+.setup ul svg{width:20px;height:20px;flex:none;color:var(--acc);margin-top:2px}
+.setup ul b{color:var(--fg);font-weight:600}
+.wz{border-radius:20px;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);padding:24px}
+.wz h3{margin:0;font-size:19px;letter-spacing:-.02em}
+.wz .wz-sub{margin:4px 0 18px;color:var(--muted);font-size:14px}
+.wz-tabs{position:relative;display:flex;padding:3px;border-radius:11px;background:var(--bg);border:1px solid var(--line);margin-bottom:16px}
+.wz-tabs span{position:relative;z-index:1;flex:1;text-align:center;padding:6px 4px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transition:color .3s}
+.wz-tabs span.on{color:var(--fg)}
+.wz-tabs i{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/3);border-radius:8px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.12);transition:transform .5s var(--ease)}
+.wz ol{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:w}
+.wz ol li{counter-increment:w;display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start;padding:12px 14px;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:14px;color:var(--muted)}
+.wz ol li::before{content:counter(w);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--surface);border:1px solid var(--line-2);font:600 12px var(--mono);color:var(--fg)}
+.wz ol li b{display:block;color:var(--fg);font-weight:600;font-size:14.5px;margin-bottom:2px}
+.wz .mono{font-size:12.5px;padding:1px 6px;border-radius:5px;background:var(--surface);border:1px solid var(--line)}
+.wz-st{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--bg);color:var(--muted);font-size:14px;font-weight:500;transition:background .4s,color .4s}
+.wz-st svg{width:18px;height:18px}
+.wz-st .sp{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--acc);animation:wzspin .9s linear infinite}
+@keyframes wzspin{to{transform:rotate(360deg)}}
+.wz-st.ok{background:rgba(23,128,61,.12);color:#17803d}
+:root[data-theme="dark"] .wz-st.ok{background:rgba(76,203,131,.14);color:#4ccb83}
+.wz-st .ck{display:none}.wz-st.ok .ck{display:block}.wz-st.ok .sp{display:none}
+@media (max-width:900px){.setup{grid-template-columns:1fr;gap:36px}}
 
 /* Download */
 .dl{background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -591,13 +503,6 @@ footer a:hover{color:var(--fg)}
   .sec{padding:110px 0}
   .stage{margin-top:52px}
   .win{border-radius:14px}
-  .win-bar{padding:10px 12px;gap:10px}
-  .win-bar>.brand{display:none}
-  .win-icons{display:none}
-  .item{padding:12px}
-  .pct{font-size:18px}
-  .side{grid-template-columns:1fr;padding:18px}
-  .big-speed{font-size:36px}
   .race{padding:22px}
   .lane{grid-template-columns:1fr auto;gap:10px 14px}
   .lane .track{grid-column:1/-1;grid-row:2;height:34px}
@@ -662,7 +567,7 @@ footer a:hover{color:var(--fg)}
       <a href="#parallel">Tempo</a>
       <a href="#ablauf">So geht’s</a>
       <a href="#fortsetzen">Fortsetzen</a>
-      <a href="#designs">Designs</a>
+      <a href="#einrichten">Erweiterung</a>
       <a href="#download">Download</a>
     </nav>
     <div class="nav-end">
@@ -711,59 +616,9 @@ footer a:hover{color:var(--fg)}
 
     <!-- App-Fenster -->
     <div class="stage fade-up" style="animation-delay:1.05s" id="stage">
-      <div class="win" id="heroWin" aria-label="Vorschau der Speedload-Oberfläche" role="img">
-        <div class="win-bar">
-          <span class="brand"><span class="brand-mark"><span><i></i><i></i><i></i></span></span>speedload</span>
-          <div class="url"><span id="heroUrl">https://cdimage.debian.org/…/debian-12.7.0-amd64-netinst.iso</span><b>Laden</b></div>
-          <div class="win-icons"><span><svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></g></svg></span><span><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3v8M6.3 6.3a8 8 0 1 0 11.4 0"/></svg></span></div>
-        </div>
-        <div class="win-body">
-          <div class="list">
-            <div class="item active">
-              <div class="item-top">
-                <span class="ficon" id="heroExt">ISO</span>
-                <div class="fname-w">
-                  <span class="fname" id="heroName">debian-12.7.0-amd64-netinst.iso</span>
-                  <span class="fmeta num"><span id="heroDone">0 MB von 631 MB</span><span id="heroEta">noch –</span></span>
-                </div>
-                <span class="pct num" id="heroPct">0 %</span>
-              </div>
-              <div class="segbar" id="heroSegs"></div>
-            </div>
-            <div class="item wait">
-              <div class="item-top">
-                <span class="ficon">MP4</span>
-                <div class="fname-w"><span class="fname">vortrag-aufzeichnung-1080p.mp4</span><span class="fmeta">1,4 GB</span></div>
-                <span class="state wait">Wartet</span>
-              </div>
-            </div>
-            <div class="item done">
-              <div class="item-top">
-                <span class="ficon">ZIP</span>
-                <div class="fname-w"><span class="fname">fotos-urlaub-2026.zip</span><span class="fmeta">812 MB · in 9 s</span></div>
-                <span class="state ok">Fertig</span>
-              </div>
-            </div>
-          </div>
-          <aside class="side">
-            <div>
-              <h4>Tempo</h4>
-              <div class="big-speed num"><span id="heroSpeed">0,0</span><small>MB/s</small></div>
-              <svg class="graph" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-                <defs><linearGradient id="gfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".35"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>
-                <path class="a" id="gArea" d="M0 40Z"/><path class="l" id="gLine" d="M0 40"/>
-              </svg>
-            </div>
-            <div>
-              <h4 style="margin-bottom:10px">Verbindungen</h4>
-              <div class="conns" id="heroConns"></div>
-              <dl class="kv" style="margin:16px 0 0">
-                <dt>Aktiv</dt><dd id="heroActive">8 / 8</dd>
-                <dt>Neuversuche</dt><dd>0</dd>
-              </dl>
-            </div>
-          </aside>
-        </div>
+      <div class="win" id="heroWin">
+        <img class="shot light" src="img/app-light-1600.webp" srcset="img/app-light-800.webp 800w, img/app-light-1600.webp 1600w" sizes="(max-width: 1100px) 100vw, 1080px" width="1600" height="914" fetchpriority="high" alt="Speedload mit fünf Downloads: zwei laden über je 8 Verbindungen, einer wartet, zwei sind fertig.">
+        <img class="shot dark" src="img/app-dark-1600.webp" srcset="img/app-dark-800.webp 800w, img/app-dark-1600.webp 1600w" sizes="(max-width: 1100px) 100vw, 1080px" width="1600" height="914" alt="">
       </div>
     </div>
   </div>
@@ -932,46 +787,27 @@ footer a:hover{color:var(--fg)}
   </div>
 </section>
 
-<!-- ───────────── Designs ───────────── -->
-<section class="sec" id="designs" style="padding-top:40px">
-  <div class="wrap center">
-    <p class="kicker" data-reveal>Designs</p>
-    <h2 data-reveal>Drei Gesichter.<br><span class="dim">Jedes hell und dunkel.</span></h2>
-    <p class="lede" data-reveal>Umschalten in den Einstellungen. Folgt auf Wunsch deinem System, genau wie diese Seite. Probier den Schalter oben.</p>
-  </div>
+<!-- ───────────── Erweiterung ───────────── -->
+<section class="sec" id="einrichten" style="padding-top:40px">
   <div class="wrap">
-    <div class="themes">
-      <figure class="tcard" data-reveal style="margin:0">
-        <div class="tprev t-glass" aria-hidden="true">
-          <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
-          <div class="glass">
-            <div class="gn">sintel-4k.mkv</div>
-            <div class="gv"><span id="gV">0,0</span> <small>MB/s</small></div>
-            <div class="gb"><i id="gB"></i></div>
-            <div class="gm"><span id="gP">0 %</span><span>8 Verbindungen</span></div>
-          </div>
-        </div>
-        <figcaption class="tcap"><h3>Glassmorphism</h3><p>Milchglas über ruhig fließenden Farben.</p></figcaption>
-      </figure>
-      <figure class="tcard" data-reveal style="margin:0;--rd:.08s">
-        <div class="tprev t-ascii" aria-hidden="true"><pre id="ascii"></pre></div>
-        <figcaption class="tcap"><h3>ASCII-Art</h3><p>Terminal-Look. Balken aus Rauten und Punkten.</p></figcaption>
-      </figure>
-      <figure class="tcard" data-reveal style="margin:0;--rd:.16s">
-        <div class="tprev t-flap" aria-hidden="true">
-          <div class="flapbox">
-            <span class="flaplbl">Tempo · MB/s</span>
-            <div class="flaps" id="flapSpeed"></div>
-            <span class="flaplbl" style="margin-top:6px">Fertig</span>
-            <div class="flaps" id="flapPct"></div>
-          </div>
-        </div>
-        <figcaption class="tcap"><h3>Split-Flap</h3><p>Klapptafel wie am Bahnhof. Jede Ziffer klappt einzeln.</p></figcaption>
-      </figure>
-    </div>
-    <div class="accents" data-reveal>
-      <span>Dazu sieben Akzentfarben</span>
-      <i style="--c:#8b78ff"></i><i style="--c:#22c7f0"></i><i style="--c:#2fd889"></i><i style="--c:#f5c400"></i><i style="--c:#ff7a45"></i><i style="--c:#ff4f9a"></i><i style="--c:conic-gradient(#8b78ff,#22c7f0,#2fd889,#f5c400,#ff7a45,#ff4f9a,#8b78ff)"></i>
+    <div class="setup">
+      <div>
+        <p class="kicker" data-reveal>Browser-Erweiterung</p>
+        <h2 data-reveal>Eingerichtet<br><span class="dim">in einer Minute.</span></h2>
+        <p class="lede" data-reveal>Speedload bringt die Erweiterung selbst mit. Ein Assistent in der App führt durch jeden Schritt und sagt Bescheid, sobald alles verbunden ist.</p>
+        <ul data-reveal>
+          <li><svg><use href="#i-check"/></svg><span><b>Firefox und Mullvad Browser:</b> ein Klick öffnet den Browser, der fragt nur noch „Hinzufügen?“.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Chrome, Edge, Brave:</b> Speedload legt den Ordner bereit und zeigt ihn an.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Alles zum Kopieren:</b> Adressen wie <span class="mono">about:config</span> mit einem Klick in der Zwischenablage.</span></li>
+        </ul>
+      </div>
+      <div class="wz" data-reveal style="--rd:.08s" aria-hidden="true" id="wz">
+        <h3>Browser-Erweiterung einrichten</h3>
+        <p class="wz-sub">Einstellungen → Browser → Einrichten</p>
+        <div class="wz-tabs"><i id="wzInd"></i><span class="on">Firefox</span><span>Mullvad</span><span>Chrome</span></div>
+        <ol id="wzSteps"></ol>
+        <div class="wz-st" id="wzSt"><span class="sp"></span><svg class="ck"><use href="#i-check"/></svg><span id="wzStT">Warte auf die Erweiterung …</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1025,7 +861,7 @@ in shell:startup ablegen</div>
         <span class="os-ic"><svg><use href="#i-puzzle"/></svg></span>
         <div>
           <h3>Browser-Erweiterung</h3>
-          <p class="sub">Für Firefox und Mullvad Browser als <span class="mono">.xpi</span>. In Chrome, Edge und Brave als entpackte Erweiterung laden.</p>
+          <p class="sub">Steckt schon in Speedload: Einstellungen → Browser → Einrichten. Hier zusätzlich als Datei, für Firefox und Mullvad Browser als <span class="mono">.xpi</span>.</p>
           <div class="links">
             <a class="lnk" href="https://github.com/Emre1001/speedload/releases/latest/download/speedload-extension.xpi"><svg><use href="#i-dl"/></svg>speedload-extension.xpi</a>
             <a class="lnk" href="https://github.com/Emre1001/speedload/tree/main/extension" target="_blank" rel="noopener"><svg><use href="#i-arrow"/></svg>Ordner für Chrome</a>
@@ -1271,71 +1107,6 @@ function tilt() {
 }
 addEventListener('scroll', tilt, { passive: true }); addEventListener('resize', tilt); tilt();
 
-/* ─── Hero: laufender Download ─── */
-(() => {
-  const FILES = [
-    { n: 'debian-12.7.0-amd64-netinst.iso', u: 'https://cdimage.debian.org/…/debian-12.7.0-amd64-netinst.iso', s: 631, x: 'ISO' },
-    { n: 'blender-4.2.3-linux-x64.tar.xz', u: 'https://download.blender.org/…/blender-4.2.3-linux-x64.tar.xz', s: 341, x: 'TXZ' },
-    { n: 'sintel-4k-master.mkv', u: 'https://media.example.org/open-movies/sintel-4k-master.mkv', s: 948, x: 'MKV' }
-  ];
-  const N = 8, segsEl = $('#heroSegs'), connsEl = $('#heroConns');
-  const segs = [], conns = [];
-  for (let i = 0; i < N; i++) {
-    const s = document.createElement('span'); s.className = 'seg'; s.innerHTML = '<i></i>'; segsEl.appendChild(s); segs.push(s);
-    const c = document.createElement('span'); connsEl.appendChild(c); conns.push(c);
-  }
-  const E = { name: $('#heroName'), url: $('#heroUrl'), ext: $('#heroExt'), done: $('#heroDone'), eta: $('#heroEta'), pct: $('#heroPct'), spd: $('#heroSpeed'), act: $('#heroActive'), area: $('#gArea'), line: $('#gLine') };
-  let fi = -1, file, part, got, base, rate, hold, hist = new Array(60).fill(0), sampleT = 0, uiT = 0;
-  function next() {
-    fi = (fi + 1) % FILES.length; file = FILES[fi]; part = file.s / N;
-    got = new Array(N).fill(0); base = Array.from({ length: N }, () => 9 + Math.random() * 8); rate = base.slice(); hold = 0;
-    E.name.textContent = file.n; E.url.textContent = file.u; E.ext.textContent = file.x;
-    segs.forEach(s => s.classList.remove('fin', 'help'));
-    conns.forEach(c => c.classList.remove('fin'));
-  }
-  function frame(dt) {
-    if (hold > 0) { hold -= dt; hist.push(0); hist.shift(); drawGraph(); if (hold <= 0) next(); return; }
-    let total = 0, sp = 0, active = 0;
-    // langsamsten offenen Teil finden; fertige Worker helfen dort mit
-    let slow = -1, slowLeft = 0;
-    for (let i = 0; i < N; i++) { const left = part - got[i]; if (left > 0 && left > slowLeft) { slowLeft = left; slow = i; } }
-    for (let i = 0; i < N; i++) {
-      if (got[i] >= part) continue;
-      rate[i] += ((base[i] * (.75 + Math.random() * .5)) - rate[i]) * .08;
-      let r = rate[i];
-      if (i === slow) { for (let j = 0; j < N; j++) if (got[j] >= part) r += base[j] * .9; }
-      got[i] = Math.min(part, got[i] + r * dt); sp += r; active++;
-      if (got[i] >= part) { segs[i].classList.add('fin'); conns[i].classList.add('fin'); }
-    }
-    segs.forEach((s, i) => s.classList.toggle('help', i === slow && active < N && got[i] < part));
-    for (let i = 0; i < N; i++) total += got[i];
-    sampleT += dt; if (sampleT > .1) { sampleT = 0; hist.push(sp); hist.shift(); drawGraph(); }
-    uiT += dt;
-    if (uiT > .08 || active === 0) {
-      uiT = 0;
-      segs.forEach((s, i) => s.firstChild.style.setProperty('--p', (got[i] / part).toFixed(4)));
-      conns.forEach((c, i) => { if (got[i] < part) c.style.setProperty('--h', clamp(rate[i] / 20) * 100 + '%'); });
-      const p = total / file.s;
-      E.pct.textContent = Math.floor(p * 100) + ' %';
-      E.done.textContent = mb(total) + ' von ' + mb(file.s);
-      E.spd.textContent = de1.format(sp);
-      E.act.textContent = active + ' / ' + N;
-      E.eta.textContent = active ? 'noch ' + Math.max(1, Math.ceil((file.s - total) / Math.max(sp, 1))) + ' s' : 'fertig';
-    }
-    if (active === 0) { hold = 2.2; E.pct.textContent = '100 %'; E.spd.textContent = '0,0'; }
-  }
-  function drawGraph() {
-    const max = 140, n = hist.length;
-    let d = '';
-    hist.forEach((v, i) => { const x = (i / (n - 1)) * 100, y = 40 - clamp(v / max) * 36 - 2; d += (i ? 'L' : 'M') + x.toFixed(2) + ' ' + y.toFixed(2); });
-    E.line.setAttribute('d', d); E.area.setAttribute('d', d + 'L100 40L0 40Z');
-  }
-  next();
-  if (RM) { got = got.map(() => part * .62); frame(0); return; }
-  const L = loop(frame);
-  whileVisible(win, L.start, L.stop);
-})();
-
 /* ─── Rennen ─── */
 (() => {
   const race = $('#race'), rB = $('#rBrowser'), rS = $('#rSpeed');
@@ -1523,58 +1294,26 @@ addEventListener('scroll', tilt, { passive: true }); addEventListener('resize', 
   whileVisible($('#browsers'), () => { if (!id) id = setInterval(() => { els.forEach((e, j) => e.classList.toggle('hot', j === i)); i = (i + 1) % els.length; }, 900); }, () => { clearInterval(id); id = 0; });
 })();
 
-/* ─── Designs ─── */
+/* ─── Erweiterung einrichten ─── */
 (() => {
-  // Split-Flap
-  function makeFlaps(host, n, sm) {
-    const tiles = [];
-    for (let i = 0; i < n; i++) {
-      const t = document.createElement('span'); t.className = 'ft' + (sm ? ' sm' : '');
-      t.innerHTML = '<span class="h u"><b>0</b></span><span class="h d"><b>0</b></span>';
-      t._v = '0'; host.appendChild(t); tiles.push(t);
-    }
-    return tiles;
+  const STEPS = [
+    ['<b>Add-ons ohne Signatur erlauben</b><span class="mono">about:config</span> → <span class="mono">xpinstall.signatures.required</span> auf <span class="mono">false</span>', '<b>In Firefox öffnen</b>Ein Klick in Speedload, Firefox fragt „Speedload hinzufügen?“'],
+    ['<b>Add-ons ohne Signatur erlauben</b><span class="mono">about:config</span> → <span class="mono">xpinstall.signatures.required</span> auf <span class="mono">false</span>', '<b>In Mullvad Browser öffnen</b>Ein Klick in Speedload, dann „Hinzufügen“', '<b>Private Fenster erlauben</b><span class="mono">about:addons</span> → Speedload → Erlauben'],
+    ['<b>Entwicklermodus einschalten</b><span class="mono">chrome://extensions</span> → oben rechts', '<b>Ordner laden</b>„Entpackte Erweiterung laden“ → Speedload zeigt den Ordner'],
+  ];
+  const tabs = $$('.wz-tabs span'), ind = $('#wzInd'), ol = $('#wzSteps'), st = $('#wzSt'), stT = $('#wzStT');
+  let i = 0, id = 0, t2 = 0;
+  function show() {
+    tabs.forEach((x, j) => x.classList.toggle('on', j === i));
+    ind.style.transform = `translateX(${i * 100}%)`;
+    ol.innerHTML = STEPS[i].map(x => `<li><span>${x}</span></li>`).join('');
+    st.classList.remove('ok'); stT.textContent = 'Warte auf die Erweiterung …';
+    clearTimeout(t2);
+    t2 = setTimeout(() => { st.classList.add('ok'); stT.textContent = 'Fertig! Die Erweiterung ist verbunden.'; }, RM ? 0 : 2200);
   }
-  function flip(t, nv) {
-    if (t._v === nv) return;
-    const ov = t._v; t._v = nv;
-    if (RM) { $$('b', t).forEach(b => b.textContent = nv); return; }
-    $$('.fu,.fd', t).forEach(x => x.remove());
-    $('.u b', t).textContent = nv;
-    const fu = document.createElement('span'); fu.className = 'h u fu'; fu.innerHTML = `<b>${ov}</b>`;
-    const fd = document.createElement('span'); fd.className = 'h d fd'; fd.innerHTML = `<b>${nv}</b>`;
-    t.append(fu, fd);
-    setTimeout(() => { $('.d b', t).textContent = nv; fu.remove(); fd.remove(); }, 340);
-  }
-  const fs = makeFlaps($('#flapSpeed'), 3), fp = makeFlaps($('#flapPct'), 3, true);
-  const setFlaps = (tiles, str) => tiles.forEach((t, i) => setTimeout(() => flip(t, str[i]), i * 70));
-
-  const ascii = $('#ascii'), gV = $('#gV'), gB = $('#gB'), gP = $('#gP');
-  let v = 64, p = 0, id = 0;
-  function tick() {
-    v = clamp(v + (Math.random() - .5) * 18, 38, 96);
-    p += v / 900; if (p > 1.08) p = 0;
-    const pc = Math.min(100, Math.floor(p * 100));
-    gV.textContent = de1.format(p >= 1 ? 0 : v); gB.style.setProperty('--p', Math.min(100, p * 100) + '%'); gP.textContent = pc + ' %';
-    setFlaps(fs, String(Math.round(p >= 1 ? 0 : v)).padStart(3, '0'));
-    setFlaps(fp, String(pc).padStart(3, '0'));
-    const W = 20, f = Math.round(Math.min(1, p) * W);
-    const bar = '#'.repeat(f) + (f < W ? '=' : '') + '.'.repeat(Math.max(0, W - f - 1));
-    const sp = (p >= 1 ? '  0.0' : v.toFixed(1).padStart(5, ' '));
-    ascii.innerHTML =
-`<span class="dim">speedload ~ 2 aktiv, 1 wartet</span>
-
-ubuntu-24.04.iso
-[${bar.slice(0, W)}] ${String(pc).padStart(3)}%
-<span class="dim">${sp} MB/s   8 conn   eta ${p >= 1 ? '0' : Math.ceil((1 - p) * 40)}s</span>
-
-backup.tar
-[${'#'.repeat(7)}=${'.'.repeat(12)}]  37%
-<span class="dim">> </span><span class="cur">_</span>`;
-  }
-  tick();
+  show();
   if (RM) return;
-  whileVisible($('#designs'), () => { if (!id) id = setInterval(tick, 1100); }, () => { clearInterval(id); id = 0; });
+  whileVisible($('#wz'), () => { if (!id) id = setInterval(() => { i = (i + 1) % 3; show(); }, 4200); }, () => { clearInterval(id); id = 0; });
 })();
 
 })();
