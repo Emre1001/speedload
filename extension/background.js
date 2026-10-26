@@ -2,6 +2,9 @@
 const api = globalThis.browser ?? chrome;
 const SERVER = 'http://127.0.0.1:7878';
 
+// Bei Speedload melden: der Einrichtungs-Assistent in der App sieht so, dass die Erweiterung läuft.
+fetch(SERVER + '/api/hello', { method: 'POST' }).catch(() => {});
+
 api.downloads.onCreated.addListener(async (item) => {
   const url = item.finalUrl || item.url;
   // Chrome meldet beim Laden der Erweiterung auch alte Einträge aus dem Download-Verlauf.
